@@ -3,384 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>辦公室桌遊檢索系統</title>
-    <!-- Tailwind CSS -->
+    <title>辦公室桌遊與卡牌檢索系統</title>
+    <!-- Tailwind CSS (負責畫面樣式) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome Icons (負責圖示) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            background-color: #f8fafc;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
+        body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
     </style>
 </head>
-<body class="text-slate-800">
-    <div id="app" class="max-w-6xl mx-auto px-4 py-6">
+<body class="text-slate-800 p-4 sm:p-6">
+
+    <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <header class="mb-8 text-center sm:text-left sm:flex sm:items-center sm:justify-between border-b border-slate-200 pb-5">
+        <header class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-900 flex items-center justify-center sm:justify-start gap-3">
-                    <i class="fa-solid font-bold fa-dice-d20 text-indigo-600"></i>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-dice-d20 text-indigo-600"></i>
                     辦公室桌遊與卡牌檢索系統
                 </h1>
-                <p class="text-slate-500 mt-1 text-sm">輕鬆尋找桌遊與牌卡放置位置與分類</p>
+                <p class="text-xs text-slate-500 mt-1">輕鬆尋找桌遊與牌卡放置位置（點擊卡片可查看櫃位地圖）</p>
             </div>
-            <div class="mt-4 sm:mt-0 flex gap-2 justify-center">
-                <!-- 新增按鈕 -->
-                <button @click="showAddModal = true" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm text-sm font-medium flex items-center gap-2 transition-all">
-                    <i class="fa-solid fa-plus"></i> 新增桌遊 / 牌卡
+            <div class="flex gap-2">
+                <button onclick="openAddModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> 新增桌遊
                 </button>
-                <button @click="fetchData" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm text-sm font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-rotate" :class="{'fa-spin': loading}"></i> 重新整理
+                <button onclick="loadData()" class="px-4 py-2 bg-white border rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm text-sm font-medium flex items-center gap-2">
+                    <i id="refreshIcon" class="fa-solid fa-rotate"></i> 重新整理
                 </button>
             </div>
         </header>
 
-        <!-- Search & Filter Controls -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
-            <!-- Search Bar -->
-            <div class="relative mb-5">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input 
-                    type="text" 
-                    v-model="searchQuery" 
-                    placeholder="搜尋名稱、位置（如：A櫃中層）或主題..." 
-                    class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-700"
-                >
-            </div>
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋桌遊名稱或位置（如：A1、B2）..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        </div>
 
-            <!-- Categories Filter -->
-            <div class="space-y-4">
-                <!-- 桌遊類別 -->
+        <!-- Data Grid & Loading -->
+        <div id="loading" class="text-center py-12 text-slate-400">
+            <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-indigo-600"></i>
+            <p class="text-sm">載入雲端試算表資料中...</p>
+        </div>
+        
+        <div id="gamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- 1. 櫃位示意圖 Modal -->
+    <div id="mapModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
                 <div>
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">桌遊類別</span>
-                    <div class="flex flex-wrap gap-2">
-                        <button 
-                            @click="selectedBoardgameCategory = ''" 
-                            class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                            :class="selectedBoardgameCategory === '' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
-                        >
-                            全部類別
-                        </button>
-                        <button 
-                            v-for="cat in boardgameCategories" 
-                            :key="cat"
-                            @click="selectedBoardgameCategory = selectedBoardgameCategory === cat ? '' : cat" 
-                            class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                            :class="selectedBoardgameCategory === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
-                        >
-                            {{ cat }}
-                        </button>
-                    </div>
+                    <h2 id="modalGameName" class="text-xl font-bold text-slate-800">--</h2>
+                    <p class="text-xs text-slate-500">試算表登記位置：<span id="modalGameLocation" class="font-bold text-indigo-600">--</span></p>
                 </div>
-
-                <!-- 牌卡類別 -->
-                <div class="pt-2 border-t border-slate-100">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">牌卡類別</span>
-                    <div class="flex flex-wrap gap-2">
-                        <button 
-                            @click="selectedCardCategory = ''" 
-                            class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                            :class="selectedCardCategory === '' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
-                        >
-                            全部類別
-                        </button>
-                        <button 
-                            v-for="cardCat in cardCategories" 
-                            :key="cardCat"
-                            @click="selectedCardCategory = selectedCardCategory === cardCat ? '' : cardCat" 
-                            class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                            :class="selectedCardCategory === cardCat ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
-                        >
-                            {{ cardCat }}
-                        </button>
-                    </div>
-                </div>
+                <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
             </div>
-        </div>
 
-        <!-- Result Stats -->
-        <div class="flex items-center justify-between mb-4 px-1">
-            <p class="text-sm text-slate-500">
-                共找到 <span class="font-bold text-slate-800">{{ filteredGames.length }}</span> 項目
-            </p>
-            <button v-if="searchQuery || selectedBoardgameCategory || selectedCardCategory" @click="clearFilters" class="text-xs text-indigo-600 hover:underline">
-                重設所有篩選條件
-            </button>
-        </div>
-
-        <!-- Loading State -->
-        <div v-if="loading" class="text-center py-16">
-            <i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-600 mb-3"></i>
-            <p class="text-slate-500 text-sm">載入資料中...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else-if="filteredGames.length === 0" class="bg-white rounded-xl p-12 text-center border border-slate-200">
-            <i class="fa-solid fa-box-open text-4xl text-slate-300 mb-3"></i>
-            <p class="text-slate-600 font-medium">沒有找到符合條件的項目</p>
-            <p class="text-slate-400 text-sm mt-1">請嘗試調整搜尋關鍵字或清除篩選條件</p>
-        </div>
-
-        <!-- Games Grid -->
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div 
-                v-for="game in filteredGames" 
-                :key="game.name" 
-                class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col justify-between"
-            >
-                <div>
-                    <!-- 圖片展示區域 -->
-                    <div class="w-full h-48 bg-slate-100 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
-                        <img 
-                            v-if="game.imageUrl" 
-                            :src="game.imageUrl" 
-                            :alt="game.name"
-                            class="w-full h-full object-cover"
-                            @error="handleImageError"
-                        >
-                        <div v-else class="text-center text-slate-400 p-4">
-                            <i class="fa-solid fa-image text-3xl mb-1"></i>
-                            <p class="text-xs">無提供外盒照片</p>
-                        </div>
-                        
-                        <!-- 位置標籤 -->
-                        <span class="absolute top-3 right-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/90 backdrop-blur-md text-amber-800 border border-amber-200/50 rounded-md text-xs font-semibold shadow-sm">
-                            <i class="fa-solid fa-location-dot text-amber-600"></i> {{ game.location }}
-                        </span>
+            <!-- 櫃子示意圖 -->
+            <div class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold">
+                <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
+                
+                <div class="col-span-2 grid grid-rows-2 gap-1 h-32">
+                    <div class="grid grid-cols-2 gap-1">
+                        <div id="loc-A1" class="bg-white flex flex-col items-center justify-center rounded">A1</div>
+                        <div id="loc-B1" class="bg-white flex flex-col items-center justify-center rounded">B1</div>
                     </div>
-
-                    <div class="p-5">
-                        <h3 class="font-bold text-slate-900 text-lg leading-snug mb-2">{{ game.name }}</h3>
-
-                        <div class="flex items-center gap-4 text-xs text-slate-500 mb-4 pb-3 border-b border-slate-100">
-                            <span class="flex items-center gap-1">
-                                <i class="fa-solid fa-users text-slate-400"></i> {{ game.players || '未填寫' }}
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <i class="fa-solid fa-clock text-slate-400"></i> {{ game.duration || '未填寫' }}
-                            </span>
-                        </div>
-
-                        <!-- 桌遊類別 -->
-                        <div v-if="game.boardgameCategories && game.boardgameCategories.length" class="mb-3">
-                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">桌遊類別</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                <span v-for="cat in game.boardgameCategories" :key="cat" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs">
-                                    {{ cat }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- 牌卡類別 -->
-                        <div v-if="game.cardCategories && game.cardCategories.length">
-                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">牌卡類別</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                <span v-for="cardCat in game.cardCategories" :key="cardCat" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-xs">
-                                    {{ cardCat }}
-                                </span>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-2 gap-1">
+                        <div id="loc-A2" class="bg-white flex flex-col items-center justify-center rounded">A2</div>
+                        <div id="loc-B2" class="bg-white flex flex-col items-center justify-center rounded">B2</div>
                     </div>
                 </div>
 
-                <div v-if="game.notes" class="px-5 py-3 bg-slate-50 border-t border-slate-100 text-xs text-slate-500">
-                    <i class="fa-solid fa-circle-info mr-1 text-slate-400"></i> {{ game.notes }}
-                </div>
+                <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
             </div>
-        </div>
 
-        <!-- 新增桌遊 Modal 視窗 -->
-        <div v-if="showAddModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 my-8">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                    <h2 class="text-xl font-bold text-slate-800">新增桌遊 / 牌卡</h2>
-                    <button @click="showAddModal = false" class="text-slate-400 hover:text-slate-600">
-                        <i class="fa-solid fa-xmark text-xl"></i>
-                    </button>
-                </div>
-
-                <form @submit.prevent="submitGame" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊 / 牌卡名稱 *</label>
-                        <input type="text" v-model="newGame.name" required placeholder="例如：阿瓦隆" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">擺放位置 *</label>
-                            <input type="text" v-model="newGame.location" required placeholder="如：A櫃中層" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">適合人數</label>
-                            <input type="text" v-model="newGame.players" placeholder="如：5-10人" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">單局時間</label>
-                            <input type="text" v-model="newGame.duration" placeholder="如：30分鐘" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊類別 (可複選)</label>
-                        <div class="flex flex-wrap gap-2">
-                            <label v-for="cat in boardgameCategories" :key="cat" class="inline-flex items-center gap-1 text-xs bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200">
-                                <input type="checkbox" :value="cat" v-model="newGame.boardgameCategories" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                {{ cat }}
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">牌卡類別 (可複選)</label>
-                        <div class="flex flex-wrap gap-2">
-                            <label v-for="cardCat in cardCategories" :key="cardCat" class="inline-flex items-center gap-1 text-xs bg-slate-100 px-2 py-1 rounded cursor-pointer hover:bg-slate-200">
-                                <input type="checkbox" :value="cardCat" v-model="newGame.cardCategories" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                                {{ cardCat }}
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">外盒照片網址 (支援 Google Drive 分享連結)</label>
-                        <input type="url" v-model="newGame.imageUrl" placeholder="https://..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">備註說明</label>
-                        <textarea v-model="newGame.notes" rows="2" placeholder="備註或是遊戲重點介紹" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"></textarea>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                        <button type="button" @click="showAddModal = false" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 text-sm">取消</button>
-                        <button type="submit" :disabled="submitting" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm flex items-center gap-2 disabled:opacity-50">
-                            <i v-if="submitting" class="fa-solid fa-spinner fa-spin"></i>
-                            {{ submitting ? '寫入試算表中...' : '確認新增' }}
-                        </button>
-                    </div>
-                </form>
+            <div class="mt-5 text-center">
+                <button onclick="closeMapModal()" class="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm hover:bg-slate-700">關閉示意圖</button>
             </div>
         </div>
     </div>
 
-    <!-- Application Script -->
+    <!-- 2. 新增桌遊 Modal -->
+    <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h2 class="text-xl font-bold text-slate-800">新增桌遊 / 牌卡</h2>
+                <button onclick="closeAddModal()" class="text-slate-400 text-xl">&times;</button>
+            </div>
+            <form onsubmit="submitNewGame(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">名稱 *</label>
+                    <input type="text" id="addName" required class="w-full p-2 border rounded text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">位置 (如：A1、B2) *</label>
+                    <input type="text" id="addLoc" required class="w-full p-2 border rounded text-sm">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 border rounded text-sm">取消</button>
+                    <button type="submit" id="btnSubmit" class="px-4 py-2 bg-indigo-600 text-white rounded text-sm">確認新增</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript 邏輯 (無 Vue 依賴) -->
     <script>
-        const { createApp } = Vue;
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwtas6wDz1YWgfQ0nDI3D6aJf2x5Pt5eFvYSyxDIMf4MEZqn1eLH4akAodhRHPqzHSItA/exec';
+        let allGames = [];
 
-        createApp({
-            data() {
-                return {
-                    loading: false,
-                    submitting: false,
-                    showAddModal: false,
-                    searchQuery: '',
-                    selectedBoardgameCategory: '',
-                    selectedCardCategory: '',
-                    // 請務必將下方替換為您從 Apps Script 部署獲得的 Web App 網址
-                    apiUrl: 'https://script.google.com/macros/s/AKfycbwtas6wDz1YWgfQ0nDI3D6aJf2x5Pt5eFvYSyxDIMf4MEZqn1eLH4akAodhRHPqzHSItA/exec',
-                    boardgameCategories: ['破冰歡樂', '陣營對抗', '策略思考', '合作解謎', '派對遊戲', '陣營心理'],
-                    cardCategories: ['情緒表達', '自我探索', '人際溝通', '家庭關係', '職涯探索', '價值觀引導'],
-                    games: [],
-                    newGame: {
-                        name: '',
-                        location: '',
-                        players: '',
-                        duration: '',
-                        boardgameCategories: [],
-                        cardCategories: [],
-                        imageUrl: '',
-                        notes: ''
-                    }
-                }
-            },
-            computed: {
-                filteredGames() {
-                    return this.games.filter(game => {
-                        const matchesSearch = 
-                            game.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            game.location.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            (game.notes && game.notes.toLowerCase().includes(this.searchQuery.toLowerCase()));
+        // 1. 抓取 API 資料
+        async function loadData() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('gamesGrid').innerHTML = '';
+            document.getElementById('refreshIcon').classList.add('fa-spin');
 
-                        const matchesBoardgame = !this.selectedBoardgameCategory || 
-                            (game.boardgameCategories && game.boardgameCategories.includes(this.selectedBoardgameCategory));
-                        
-                        const matchesCard = !this.selectedCardCategory || 
-                            (game.cardCategories && game.cardCategories.includes(this.selectedCardCategory));
-
-                        return matchesSearch && matchesBoardgame && matchesCard;
-                    });
-                }
-            },
-            methods: {
-                clearFilters() {
-                    this.searchQuery = '';
-                    this.selectedBoardgameCategory = '';
-                    this.selectedCardCategory = '';
-                },
-                handleImageError(e) {
-                    e.target.style.display = 'none';
-                },
-                async fetchData() {
-                    if (this.apiUrl === 'YOUR_APPS_SCRIPT_WEB_APP_URL') return;
-                    this.loading = true;
-                    try {
-                        const res = await fetch(this.apiUrl);
-                        const data = await res.json();
-                        if (data && Array.isArray(data)) {
-                            this.games = data;
-                        }
-                    } catch (err) {
-                        console.error('抓取資料失敗:', err);
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-                async submitGame() {
-                    if (this.apiUrl === 'YOUR_APPS_SCRIPT_WEB_APP_URL') {
-                        alert('請先填入您的 Apps Script Web App 網址！');
-                        return;
-                    }
-                    this.submitting = true;
-                    try {
-                        // 使用 text/plain 規避 Google Apps Script 的 CORS 限制
-                        await fetch(this.apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            body: JSON.stringify(this.newGame)
-                        });
-
-                        alert('新增成功！已成功同步寫入 Google 試算表。');
-                        this.showAddModal = false;
-                        
-                        // 清空表單
-                        this.newGame = {
-                            name: '',
-                            location: '',
-                            players: '',
-                            duration: '',
-                            boardgameCategories: [],
-                            cardCategories: [],
-                            imageUrl: '',
-                            notes: ''
-                        };
-
-                        // 重新抓取資料
-                        this.fetchData();
-                    } catch (err) {
-                        console.error('新增失敗:', err);
-                        alert('新增失敗，請確認網路連線或 Apps Script 部署設定。');
-                    } finally {
-                        this.submitting = false;
-                    }
-                }
-            },
-            mounted() {
-                this.fetchData();
+            try {
+                const res = await fetch(API_URL);
+                allGames = await res.json();
+                renderCards(allGames);
+            } catch (err) {
+                alert('資料載入失敗！');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('refreshIcon').classList.remove('fa-spin');
             }
-        }).mount('#app');
+        }
+
+        // 2. 渲染桌遊卡片
+        function renderCards(games) {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+
+            games.forEach(game => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer p-5 flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-slate-900 text-lg">${game.name}</h3>
+                            <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded text-xs font-bold">
+                                <i class="fa-solid fa-location-dot text-amber-500"></i> ${game.location || '未標示'}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-2">適合人數：${game.players || '未填'}</p>
+                    </div>
+                    <div class="pt-3 border-t text-xs text-indigo-600 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-map-location-dot"></i> 點擊查看櫃位地圖
+                    </div>
+                `;
+
+                // 綁定點擊事件 -> 開啟櫃位地圖 Modal
+                card.onclick = () => openMapModal(game);
+                grid.appendChild(card);
+            });
+        }
+
+        // 3. 打開櫃位地圖
+        function openMapModal(game) {
+            document.getElementById('modalGameName').textContent = game.name;
+            document.getElementById('modalGameLocation').textContent = game.location || '未標示';
+
+            const rawLoc = (game.location || '').toUpperCase();
+            ['A1', 'A2', 'B1', 'B2'].forEach(loc => {
+                const el = document.getElementById(`loc-${loc}`);
+                if (rawLoc.includes(loc)) {
+                    el.className = "bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs";
+                    el.innerHTML = `${loc}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span>`;
+                } else {
+                    el.className = "bg-white text-slate-700 flex items-center justify-center rounded";
+                    el.innerHTML = loc;
+                }
+            });
+
+            document.getElementById('mapModal').classList.remove('hidden');
+        }
+
+        function closeMapModal() {
+            document.getElementById('mapModal').classList.add('hidden');
+        }
+
+        // 4. 搜尋功能
+        function filterGames() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = allGames.filter(g => 
+                (g.name && g.name.toLowerCase().includes(query)) ||
+                (g.location && g.location.toLowerCase().includes(query))
+            );
+            renderCards(filtered);
+        }
+
+        // 5. 新增桌遊
+        function openAddModal() { document.getElementById('addModal').classList.remove('hidden'); }
+        function closeAddModal() { document.getElementById('addModal').classList.add('hidden'); }
+
+        async function submitNewGame(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerText = '寫入中...';
+
+            const payload = {
+                name: document.getElementById('addName').value,
+                location: document.getElementById('addLoc').value
+            };
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                alert('新增成功！');
+                closeAddModal();
+                loadData();
+            } catch (err) {
+                alert('新增失敗！');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '確認新增';
+            }
+        }
+
+        // 初次開啟頁面載入資料
+        loadData();
     </script>
 </body>
 </html>
