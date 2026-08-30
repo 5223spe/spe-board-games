@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>辦公室桌遊與卡牌檢索系統</title>
+    <title>辦公室桌遊、牌卡與圖書檢索系統</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -19,14 +19,14 @@
         <header class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
             <div>
                 <h1 class="text-2xl font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-dice-d20 text-indigo-600"></i>
-                    辦公室桌遊與卡牌檢索系統
+                    <i class="fa-solid fa-boxes-stacked text-indigo-600"></i>
+                    辦公室桌遊、牌卡與圖書檢索系統
                 </h1>
-                <p class="text-xs text-slate-500 mt-1">輕鬆尋找桌遊與牌卡放置位置與分類（點擊卡片可查看櫃位地圖）</p>
+                <p class="text-xs text-slate-500 mt-1">輕鬆尋找桌遊、牌卡與圖書放置位置（點擊卡片可查看對應櫃位地圖）</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="openAddModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm text-sm font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> 新增桌遊 / 牌卡
+                    <i class="fa-solid fa-plus"></i> 新增項目
                 </button>
                 <button onclick="loadData()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm text-sm font-medium flex items-center gap-2">
                     <i id="refreshIcon" class="fa-solid fa-rotate"></i> 重新整理
@@ -39,19 +39,19 @@
             <!-- 搜尋框 -->
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
-                <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋名稱、位置（如：A櫃中層）或主題..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm transition-all">
+                <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋名稱、作者、位置（如：A1、上層）或備註..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm transition-all">
             </div>
 
-            <!-- 桌遊類別按鈕列 -->
+            <!-- 分類按鈕區 -->
             <div>
                 <span class="text-xs font-bold text-slate-400 block mb-2">桌遊類別</span>
-                <div id="boardgameCategoryButtons" class="flex flex-wrap gap-2"></div>
-            </div>
+                <div id="boardgameCategoryButtons" class="flex flex-wrap gap-2 mb-3"></div>
 
-            <!-- 牌卡類別按鈕列 -->
-            <div>
                 <span class="text-xs font-bold text-slate-400 block mb-2">牌卡類別</span>
-                <div id="cardCategoryButtons" class="flex flex-wrap gap-2"></div>
+                <div id="cardCategoryButtons" class="flex flex-wrap gap-2 mb-3"></div>
+
+                <span class="text-xs font-bold text-slate-400 block mb-2">圖書類別</span>
+                <div id="bookCategoryButtons" class="flex flex-wrap gap-2"></div>
             </div>
         </div>
 
@@ -79,10 +79,9 @@
                 <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
             </div>
 
-            <!-- 櫃子示意圖 -->
-            <div class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold">
+            <!-- 桌遊/牌卡櫃地圖 (2x2) -->
+            <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold">
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
-                
                 <div class="col-span-2 grid grid-rows-2 gap-1 h-32">
                     <div class="grid grid-cols-2 gap-1">
                         <div id="loc-A1" class="bg-white flex flex-col items-center justify-center rounded">A1</div>
@@ -93,8 +92,17 @@
                         <div id="loc-B2" class="bg-white flex flex-col items-center justify-center rounded">B2</div>
                     </div>
                 </div>
-
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
+            </div>
+
+            <!-- 圖書櫃地圖 (上下層) -->
+            <div id="bookMap" class="border-4 border-slate-800 bg-slate-200 p-2 rounded-lg space-y-2 hidden">
+                <div id="loc-上層" class="h-20 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">
+                    上層
+                </div>
+                <div id="loc-下層" class="h-20 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">
+                    下層
+                </div>
             </div>
 
             <div class="mt-5 text-center">
@@ -103,48 +111,78 @@
         </div>
     </div>
 
-    <!-- 2. 新增桌遊 / 牌卡 Modal -->
+    <!-- 2. 新增 Modal -->
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
-                <h2 class="text-xl font-bold text-slate-800">新增桌遊 / 牌卡</h2>
+                <h2 class="text-xl font-bold text-slate-800">新增資料</h2>
                 <button onclick="closeAddModal()" class="text-slate-400 text-xl">&times;</button>
             </div>
-            <form onsubmit="submitNewGame(event)" class="space-y-4">
+            
+            <form onsubmit="submitNewGame(event)" class="space-y-3">
+                <!-- 項目類型選擇 -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">新增類型 *</label>
+                    <select id="addItemType" onchange="toggleFormFields()" class="w-full p-2 border rounded-lg text-sm bg-slate-50 font-bold">
+                        <option value="game">桌遊 / 牌卡 (寫入 Sheet1)</option>
+                        <option value="book">圖書 (寫入 Sheet2)</option>
+                    </select>
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">名稱 *</label>
                     <input type="text" id="addName" required class="w-full p-2 border rounded-lg text-sm">
                 </div>
+
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">放置位置 (如：A1、B2) *</label>
+                    <label id="locLabel" class="block text-xs font-semibold text-slate-600 mb-1">放置位置 (如: A1, B2) *</label>
                     <input type="text" id="addLoc" required class="w-full p-2 border rounded-lg text-sm">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">適合人數</label>
-                        <input type="text" id="addPlayers" placeholder="例：3~5人" class="w-full p-2 border rounded-lg text-sm">
+
+                <!-- 桌遊/牌卡專用欄位 -->
+                <div id="gameFields" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">適合人數</label>
+                            <input type="text" id="addPlayers" placeholder="例：3~5人" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">遊玩時間</label>
+                            <input type="text" id="addDuration" placeholder="例：20分鐘" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">遊玩時間</label>
-                        <input type="text" id="addDuration" placeholder="例：20分鐘" class="w-full p-2 border rounded-lg text-sm">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊類別</label>
+                        <input type="text" id="addBgCats" placeholder="例：派對遊戲, 破冰歡樂" class="w-full p-2 border rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">牌卡類別</label>
+                        <input type="text" id="addCardCats" placeholder="例：人際溝通, 心理輔導" class="w-full p-2 border rounded-lg text-sm">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊類別 (多個請用逗號隔開)</label>
-                    <input type="text" id="addBgCats" placeholder="例：派對遊戲, 破冰歡樂" class="w-full p-2 border rounded-lg text-sm">
+
+                <!-- 圖書專用欄位 -->
+                <div id="bookFields" class="space-y-3 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">作者</label>
+                        <input type="text" id="addAuthor" placeholder="例：被討厭的勇氣作者" class="w-full p-2 border rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">圖書類別</label>
+                        <input type="text" id="addBookCats" placeholder="例：心理學, 親子教育" class="w-full p-2 border rounded-lg text-sm">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">牌卡類別 (多個請用斜線或逗號隔開)</label>
-                    <input type="text" id="addCardCats" placeholder="例：人際溝通, 心理輔導" class="w-full p-2 border rounded-lg text-sm">
-                </div>
+
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">圖片網址 (可留空)</label>
                     <input type="url" id="addImageUrl" placeholder="https://..." class="w-full p-2 border rounded-lg text-sm">
                 </div>
+
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">備註 / 說明</label>
-                    <input type="text" id="addNotes" placeholder="簡短簡介或注意事項" class="w-full p-2 border rounded-lg text-sm">
+                    <input type="text" id="addNotes" class="w-full p-2 border rounded-lg text-sm">
                 </div>
+
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeAddModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button>
                     <button type="submit" id="btnSubmit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium">確認新增</button>
@@ -154,15 +192,16 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxFnNo02os3UzNRl2PodD0tLVuNvGjfRHvjhzYokfGrUZm1kGSBmL-rGCmGj_J_AfmWdQ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwFIglSmazVioqlxXePaJyyIgjhLIBg0YlwHR0nk0eFDHcuF73BtEiBGPzjdbqiemwJFA/exec';
         let allGames = [];
         let selectedBoardgameCategory = '全部類別';
         let selectedCardCategory = '全部類別';
+        let selectedBookCategory = '全部類別';
 
         const DEFAULT_BG_CATS = ['派對遊戲', '陣營心理', '策略思考', '言語遊戲', '卡牌遊戲', '兒童遊戲', '破冰歡樂', '合作解謎'];
         const DEFAULT_CARD_CATS = ['情緒表達', '自我探索', '人際溝通', '家庭關係', '職涯探索', '價值觀引導'];
+        const DEFAULT_BOOK_CATS = ['心理輔導', '諮商技巧', '情緒管理', '親職教育', '自我成長'];
 
-        // 拆分標籤：同時支援逗號、斜線或頓號
         const parseTags = (val) => {
             if (!val) return [];
             if (Array.isArray(val)) return val;
@@ -192,41 +231,34 @@
         function renderCategoryButtons() {
             const dynamicBgCats = new Set(DEFAULT_BG_CATS);
             const dynamicCardCats = new Set(DEFAULT_CARD_CATS);
+            const dynamicBookCats = new Set(DEFAULT_BOOK_CATS);
 
             allGames.forEach(g => {
-                const bgTags = parseTags(g.boardgameCategories);
-                const cardTags = parseTags(g.cardCategories);
-                bgTags.forEach(t => dynamicBgCats.add(t));
-                cardTags.forEach(t => dynamicCardCats.add(t));
+                parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
+                parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
+                parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
             });
 
-            // 桌遊類別按鈕
-            const bgContainer = document.getElementById('boardgameCategoryButtons');
-            const bgCatsList = ['全部類別', ...Array.from(dynamicBgCats)];
-            bgContainer.innerHTML = bgCatsList.map(cat => {
+            document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
                 const active = selectedBoardgameCategory === cat;
-                const activeClass = active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
-                return `<button onclick="selectBgCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${activeClass}">${cat}</button>`;
+                return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
             }).join('');
 
-            // 牌卡類別按鈕
-            const cardContainer = document.getElementById('cardCategoryButtons');
-            const cardCatsList = ['全部類別', ...Array.from(dynamicCardCats)];
-            cardContainer.innerHTML = cardCatsList.map(cat => {
+            document.getElementById('cardCategoryButtons').innerHTML = ['全部類別', ...dynamicCardCats].map(cat => {
                 const active = selectedCardCategory === cat;
-                const activeClass = active ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
-                return `<button onclick="selectCardCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${activeClass}">${cat}</button>`;
+                return `<button onclick="selectCat('card', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+            }).join('');
+
+            document.getElementById('bookCategoryButtons').innerHTML = ['全部類別', ...dynamicBookCats].map(cat => {
+                const active = selectedBookCategory === cat;
+                return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
             }).join('');
         }
 
-        function selectBgCategory(cat) {
-            selectedBoardgameCategory = cat;
-            renderCategoryButtons();
-            filterGames();
-        }
-
-        function selectCardCategory(cat) {
-            selectedCardCategory = cat;
+        function selectCat(type, cat) {
+            if (type === 'bg') selectedBoardgameCategory = cat;
+            if (type === 'card') selectedCardCategory = cat;
+            if (type === 'book') selectedBookCategory = cat;
             renderCategoryButtons();
             filterGames();
         }
@@ -236,17 +268,20 @@
 
             const filtered = allGames.filter(g => {
                 const name = (g.name || '').toLowerCase();
+                const author = (g.author || '').toLowerCase();
                 const loc = (g.location || '').toLowerCase();
                 const notes = (g.notes || '').toLowerCase();
 
                 const bgTags = parseTags(g.boardgameCategories);
                 const cardTags = parseTags(g.cardCategories);
+                const bookTags = parseTags(g.bookCategories);
 
-                const matchQuery = !query || name.includes(query) || loc.includes(query) || notes.includes(query);
+                const matchQuery = !query || name.includes(query) || author.includes(query) || loc.includes(query) || notes.includes(query);
                 const matchBgCat = selectedBoardgameCategory === '全部類別' || bgTags.includes(selectedBoardgameCategory);
                 const matchCardCat = selectedCardCategory === '全部類別' || cardTags.includes(selectedCardCategory);
+                const matchBookCat = selectedBookCategory === '全部類別' || bookTags.includes(selectedBookCategory);
 
-                return matchQuery && matchBgCat && matchCardCat;
+                return matchQuery && matchBgCat && matchCardCat && matchBookCat;
             });
 
             document.getElementById('itemCount').textContent = filtered.length;
@@ -258,84 +293,124 @@
             grid.innerHTML = '';
 
             games.forEach(game => {
-                const name = game.name || '未命名桌遊';
+                const name = game.name || '未命名項目';
+                const author = game.author || '';
                 const location = game.location || '未標示';
                 const players = game.players || '';
                 const duration = game.duration || '';
                 const notes = game.notes || '';
                 const imageUrl = game.imageUrl || '';
+                const isBook = game.type === 'book' || location.includes('層');
 
                 const bgTags = parseTags(game.boardgameCategories);
                 const cardTags = parseTags(game.cardCategories);
+                const bookTags = parseTags(game.bookCategories);
 
                 const bgCatHtml = bgTags.length ? `
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span>
-                        <div class="flex flex-wrap gap-1">
-                            ${bgTags.map(t => `<span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-md text-xs font-medium">${t}</span>`).join('')}
-                        </div>
+                        <div class="flex flex-wrap gap-1">${bgTags.map(t => `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
                     </div>` : '';
 
                 const cardCatHtml = cardTags.length ? `
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span>
-                        <div class="flex flex-wrap gap-1">
-                            ${cardTags.map(t => `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-xs font-medium">${t}</span>`).join('')}
-                        </div>
+                        <div class="flex flex-wrap gap-1">${cardTags.map(t => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
+                    </div>` : '';
+
+                const bookCatHtml = bookTags.length ? `
+                    <div class="mb-2">
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">圖書類別</span>
+                        <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
                     </div>` : '';
 
                 const imageArea = imageUrl ? 
                     `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover">` : 
-                    `<div class="w-full h-44 bg-slate-100/80 flex flex-col items-center justify-center text-slate-400">
-                        <i class="fa-solid fa-image text-3xl mb-1 text-slate-300"></i>
-                        <span class="text-xs font-medium">無提供外盒照片</span>
+                    `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
+                        <span class="text-xs font-medium">無提供照片</span>
                      </div>`;
 
-                const notesArea = notes ? 
-                    `<div class="px-5 py-3 bg-slate-50/80 border-t border-slate-100 text-xs text-slate-500 flex items-start gap-1.5">
-                        <i class="fa-solid fa-circle-info text-slate-400 mt-0.5"></i> <span>${notes}</span>
-                     </div>` : '';
-
                 const card = document.createElement('div');
-                card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all overflow-hidden cursor-pointer flex flex-col justify-between group";
+                card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between";
                 
                 card.innerHTML = `
                     <div>
                         <div class="relative">
                             ${imageArea}
-                            <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm flex items-center gap-1">
+                            <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm">
                                 <i class="fa-solid fa-location-dot text-amber-600"></i> ${location}
                             </span>
                         </div>
 
                         <div class="p-5">
-                            <h3 class="font-bold text-slate-900 text-lg mb-2">${name}</h3>
+                            <h3 class="font-bold text-slate-900 text-lg mb-1">${name}</h3>
+                            ${author ? `<p class="text-xs font-medium text-slate-500 mb-3"><i class="fa-solid fa-user-pen text-slate-400 mr-1"></i>${author}</p>` : ''}
 
-                            <div class="flex items-center gap-3 text-xs text-slate-500 mb-4 pb-3 border-b border-slate-100">
-                                ${players ? `<span class="flex items-center gap-1"><i class="fa-solid fa-users text-slate-400"></i> ${players}</span>` : ''}
-                                ${duration ? `<span class="flex items-center gap-1"><i class="fa-solid fa-clock text-slate-400"></i> ${duration}</span>` : ''}
-                            </div>
+                            ${(players || duration) ? `
+                            <div class="flex items-center gap-3 text-xs text-slate-500 mb-3 pb-2 border-b border-slate-100">
+                                ${players ? `<span><i class="fa-solid fa-users"></i> ${players}</span>` : ''}
+                                ${duration ? `<span><i class="fa-solid fa-clock"></i> ${duration}</span>` : ''}
+                            </div>` : ''}
 
                             ${bgCatHtml}
                             ${cardCatHtml}
+                            ${bookCatHtml}
                         </div>
                     </div>
-                    ${notesArea}
+                    ${notes ? `<div class="px-5 py-2.5 bg-slate-50 border-t text-xs text-slate-500">${notes}</div>` : ''}
                 `;
 
-                card.onclick = () => openMapModal(name, location);
+                card.onclick = () => openMapModal(name, location, isBook);
                 grid.appendChild(card);
             });
         }
 
-        function openMapModal(name, location) {
+        function toggleFormFields() {
+            const type = document.getElementById('addItemType').value;
+            const gameFields = document.getElementById('gameFields');
+            const bookFields = document.getElementById('bookFields');
+            const locLabel = document.getElementById('locLabel');
+
+            if (type === 'book') {
+                gameFields.classList.add('hidden');
+                bookFields.classList.remove('hidden');
+                locLabel.textContent = '放置位置 (如: 上層, 下層) *';
+            } else {
+                gameFields.classList.remove('hidden');
+                bookFields.classList.add('hidden');
+                locLabel.textContent = '放置位置 (如: A1, B2) *';
+            }
+        }
+
+        function openMapModal(name, location, isBook) {
             document.getElementById('modalGameName').textContent = name;
             document.getElementById('modalGameLocation').textContent = location || '未標示';
 
-            const rawLoc = String(location || '').toUpperCase();
-            ['A1', 'A2', 'B1', 'B2'].forEach(loc => {
-                const el = document.getElementById(`loc-${loc}`);
-                if (el) {
+            const bgMap = document.getElementById('boardgameMap');
+            const bookMap = document.getElementById('bookMap');
+
+            if (isBook) {
+                bgMap.classList.add('hidden');
+                bookMap.classList.remove('hidden');
+
+                ['上層', '下層'].forEach(loc => {
+                    const el = document.getElementById(`loc-${loc}`);
+                    if (location.includes(loc)) {
+                        el.className = "h-20 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner";
+                        el.innerHTML = `${loc} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-1">你在這裡!</span>`;
+                    } else {
+                        el.className = "h-20 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500";
+                        el.innerHTML = loc;
+                    }
+                });
+            } else {
+                bookMap.classList.add('hidden');
+                bgMap.classList.remove('hidden');
+
+                const rawLoc = String(location || '').toUpperCase();
+                ['A1', 'A2', 'B1', 'B2'].forEach(loc => {
+                    const el = document.getElementById(`loc-${loc}`);
                     if (rawLoc.includes(loc)) {
                         el.className = "bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs";
                         el.innerHTML = `${loc}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span>`;
@@ -343,8 +418,8 @@
                         el.className = "bg-white text-slate-700 flex items-center justify-center rounded";
                         el.innerHTML = loc;
                     }
-                }
-            });
+                });
+            }
 
             document.getElementById('mapModal').classList.remove('hidden');
         }
@@ -359,15 +434,20 @@
             btn.disabled = true;
             btn.innerText = '寫入中...';
 
+            const itemType = document.getElementById('addItemType').value;
+
             const payload = {
+                itemType: itemType,
                 name: document.getElementById('addName').value,
+                author: document.getElementById('addAuthor').value,
                 location: document.getElementById('addLoc').value,
                 players: document.getElementById('addPlayers').value,
                 duration: document.getElementById('addDuration').value,
                 boardgameCategories: document.getElementById('addBgCats').value,
                 cardCategories: document.getElementById('addCardCats').value,
-                notes: document.getElementById('addNotes').value,
-                imageUrl: document.getElementById('addImageUrl').value
+                bookCategories: document.getElementById('addBookCats').value,
+                imageUrl: document.getElementById('addImageUrl').value,
+                notes: document.getElementById('addNotes').value
             };
 
             try {
