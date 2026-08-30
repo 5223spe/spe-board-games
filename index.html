@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>辦公室桌遊、牌卡與圖書檢索系統</title>
+    <title>鳳新特教 桌遊、牌卡與圖書檢索系統</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- 引入芫荽 (Iansui) 字型 CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/iansui@5.0.1/index.css">
 
     <style>
@@ -18,23 +19,20 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 15mm; /* 保留標準頁面邊界 */
+                margin: 15mm;
             }
-            body {
+            body, table, th, td, #printSection {
                 background-color: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 color: black !important;
-                font-family: 'Iansui', serif !important; /* 全面套用芫荽字型 */
+                font-family: 'Iansui', serif !important;
             }
-            /* 隱藏網頁原本的所有 UI 元件 */
             .no-print, header, .flex.border-b, .bg-white.border, #itemCount, #loading, #gamesGrid, #mapModal, #addModal, #printModal, #backToTopBtn {
                 display: none !important;
             }
-            /* 只顯示列印區域 */
             #printSection {
                 display: block !important;
-                font-family: 'Iansui', serif !important;
             }
             .print-page-break {
                 page-break-after: always;
@@ -44,13 +42,12 @@
                 width: 100%;
                 border-collapse: collapse;
                 margin-bottom: 20px;
-                font-size: 14px; /* 微調字級以符合楷體視覺感 */
+                font-size: 14px;
             }
             th, td {
                 border: 1px solid #333 !important;
                 padding: 6px 8px;
                 text-align: left;
-                font-family: 'Iansui', serif !important;
             }
             th {
                 background-color: #f0f0f0 !important;
@@ -192,7 +189,7 @@
         </div>
     </div>
 
-    <!-- 2. 新增 Modal -->
+    <!-- 2. 新增 Modal (支援選單+可自行打字) -->
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
@@ -230,13 +227,19 @@
                             <input type="text" id="addDuration" placeholder="例：20分鐘" class="w-full p-2 border rounded-lg text-sm">
                         </div>
                     </div>
+
+                    <!-- 桌遊類別 (支援下拉選單 + 打字) -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊類別</label>
-                        <input type="text" id="addBgCats" placeholder="例：派對遊戲, 破冰歡樂" class="w-full p-2 border rounded-lg text-sm">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊類別 (點選或輸入)</label>
+                        <input type="text" id="addBgCats" list="listBgCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
+                        <datalist id="listBgCats"></datalist>
                     </div>
+
+                    <!-- 牌卡類別 (支援下拉選單 + 打字) -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">牌卡類別</label>
-                        <input type="text" id="addCardCats" placeholder="例：人際溝通, 心理輔導" class="w-full p-2 border rounded-lg text-sm">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">牌卡類別 (點選或輸入)</label>
+                        <input type="text" id="addCardCats" list="listCardCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
+                        <datalist id="listCardCats"></datalist>
                     </div>
                 </div>
 
@@ -245,9 +248,12 @@
                         <label class="block text-xs font-semibold text-slate-600 mb-1">作者</label>
                         <input type="text" id="addAuthor" placeholder="例：被討厭的勇氣作者" class="w-full p-2 border rounded-lg text-sm">
                     </div>
+
+                    <!-- 圖書類別 (支援下拉選單 + 打字) -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">圖書類別</label>
-                        <input type="text" id="addBookCats" placeholder="例：心理學, 親子教育" class="w-full p-2 border rounded-lg text-sm">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">圖書類別 (點選或輸入)</label>
+                        <input type="text" id="addBookCats" list="listBookCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
+                        <datalist id="listBookCats"></datalist>
                     </div>
                 </div>
 
@@ -374,12 +380,14 @@
             const dynamicCardCats = new Set(DEFAULT_CARD_CATS);
             const dynamicBookCats = new Set(DEFAULT_BOOK_CATS);
 
+            // 從試算表資料中搜集現有的所有類別（含新增的自訂類別）
             allGames.forEach(g => {
                 parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
                 parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
                 parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
             });
 
+            // 1. 渲染頂部過濾按鈕
             document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
                 const active = selectedBoardgameCategory === cat;
                 return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
@@ -394,6 +402,11 @@
                 const active = selectedBookCategory === cat;
                 return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
             }).join('');
+
+            // 2. 動態更新「新增資料」彈出視窗的選單選單選項（自動學習）
+            document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
+            document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
+            document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
         }
 
         function selectCat(type, cat) {
@@ -516,7 +529,6 @@
         function openPrintModal() { document.getElementById('printModal').classList.remove('hidden'); }
         function closePrintModal() { document.getElementById('printModal').classList.add('hidden'); }
 
-        // 產生圖書跨欄 HTML (類別 rowspan + 品項)
         function generateBookCategoryHtml(items) {
             const catMap = {};
             items.forEach(item => {
@@ -555,7 +567,6 @@
             return html;
         }
 
-        // 產生雙欄桌遊 HTML
         function generateStandardTwoColumnHtml(items, titleName) {
             const mid = Math.ceil(items.length / 2);
             const leftList = items.slice(0, mid);
