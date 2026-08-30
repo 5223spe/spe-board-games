@@ -34,6 +34,19 @@
             </div>
         </header>
 
+        <!-- 主類別 Tab 分頁 -->
+        <div class="flex border-b border-slate-200 mb-6 gap-2">
+            <button id="tab-all" onclick="switchMainTab('all')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-border-all"></i> 全部顯示
+            </button>
+            <button id="tab-game" onclick="switchMainTab('game')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-dice text-indigo-500"></i> 桌遊與牌卡
+            </button>
+            <button id="tab-book" onclick="switchMainTab('book')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-book text-amber-500"></i> 圖書
+            </button>
+        </div>
+
         <!-- Search & Category Filter Section -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm space-y-4">
             <!-- 搜尋框 -->
@@ -42,16 +55,22 @@
                 <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋名稱、作者、位置（如：A1、上層）或備註..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm transition-all">
             </div>
 
-            <!-- 分類按鈕區 -->
+            <!-- 動態分類按鈕區 -->
             <div>
-                <span class="text-xs font-bold text-slate-400 block mb-2">桌遊類別</span>
-                <div id="boardgameCategoryButtons" class="flex flex-wrap gap-2 mb-3"></div>
+                <div id="bgCatWrapper" class="mb-3">
+                    <span class="text-xs font-bold text-slate-400 block mb-2">桌遊類別</span>
+                    <div id="boardgameCategoryButtons" class="flex flex-wrap gap-2"></div>
+                </div>
 
-                <span class="text-xs font-bold text-slate-400 block mb-2">牌卡類別</span>
-                <div id="cardCategoryButtons" class="flex flex-wrap gap-2 mb-3"></div>
+                <div id="cardCatWrapper" class="mb-3">
+                    <span class="text-xs font-bold text-slate-400 block mb-2">牌卡類別</span>
+                    <div id="cardCategoryButtons" class="flex flex-wrap gap-2"></div>
+                </div>
 
-                <span class="text-xs font-bold text-slate-400 block mb-2">圖書類別</span>
-                <div id="bookCategoryButtons" class="flex flex-wrap gap-2"></div>
+                <div id="bookCatWrapper">
+                    <span class="text-xs font-bold text-slate-400 block mb-2">圖書類別</span>
+                    <div id="bookCategoryButtons" class="flex flex-wrap gap-2"></div>
+                </div>
             </div>
         </div>
 
@@ -120,7 +139,6 @@
             </div>
             
             <form onsubmit="submitNewGame(event)" class="space-y-3">
-                <!-- 項目類型選擇 -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">新增類型 *</label>
                     <select id="addItemType" onchange="toggleFormFields()" class="w-full p-2 border rounded-lg text-sm bg-slate-50 font-bold">
@@ -194,6 +212,7 @@
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwFIglSmazVioqlxXePaJyyIgjhLIBg0YlwHR0nk0eFDHcuF73BtEiBGPzjdbqiemwJFA/exec';
         let allGames = [];
+        let currentTab = 'all'; // 'all', 'game', 'book'
         let selectedBoardgameCategory = '全部類別';
         let selectedCardCategory = '全部類別';
         let selectedBookCategory = '全部類別';
@@ -226,6 +245,28 @@
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('refreshIcon').classList.remove('fa-spin');
             }
+        }
+
+        // 切換主 Tab (全部 / 桌遊牌卡 / 圖書)
+        function switchMainTab(tab) {
+            currentTab = tab;
+            const tabs = ['all', 'game', 'book'];
+            
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all";
+                } else {
+                    btn.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-all";
+                }
+            });
+
+            // 根據切換的 Tab 控制顯示哪些細項標籤篩選器
+            document.getElementById('bgCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
+            document.getElementById('cardCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
+            document.getElementById('bookCatWrapper').style.display = (tab === 'all' || tab === 'book') ? 'block' : 'none';
+
+            filterGames();
         }
 
         function renderCategoryButtons() {
@@ -267,6 +308,13 @@
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
 
             const filtered = allGames.filter(g => {
+                const isBook = g.type === 'book' || (g.location || '').includes('層');
+
+                // 1. 根據 Tab 進行大分類篩選
+                if (currentTab === 'game' && isBook) return false;
+                if (currentTab === 'book' && !isBook) return false;
+
+                // 2. 關鍵字與細項標籤過濾
                 const name = (g.name || '').toLowerCase();
                 const author = (g.author || '').toLowerCase();
                 const loc = (g.location || '').toLowerCase();
