@@ -8,6 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 引入芫荽字型 (Iansui) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Iansui&display=swap" rel="stylesheet">
+
     <style>
         body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
 
@@ -15,20 +21,23 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 12mm;
+                margin: 15mm; /* 保留標準頁面邊界 */
             }
             body {
                 background-color: white !important;
                 padding: 0 !important;
+                margin: 0 !important;
                 color: black !important;
+                font-family: 'Iansui', serif !important; /* 全面套用芫荽字型 */
             }
-            /* 隱藏網頁原本的所有元件 */
-            .no-print, header, .flex.border-b, .bg-white.border, #itemCount, #loading, #gamesGrid, #mapModal, #addModal, #backToTopBtn {
+            /* 隱藏網頁原本的所有 UI 元件 */
+            .no-print, header, .flex.border-b, .bg-white.border, #itemCount, #loading, #gamesGrid, #mapModal, #addModal, #printModal, #backToTopBtn {
                 display: none !important;
             }
             /* 只顯示列印區域 */
             #printSection {
                 display: block !important;
+                font-family: 'Iansui', serif !important;
             }
             .print-page-break {
                 page-break-after: always;
@@ -38,17 +47,28 @@
                 width: 100%;
                 border-collapse: collapse;
                 margin-bottom: 20px;
-                font-size: 13px;
+                font-size: 14px; /* 微調字級以符合楷體視覺感 */
             }
             th, td {
                 border: 1px solid #333 !important;
                 padding: 6px 8px;
                 text-align: left;
+                font-family: 'Iansui', serif !important;
             }
             th {
                 background-color: #f0f0f0 !important;
                 font-weight: bold;
+                text-align: center;
                 -webkit-print-color-adjust: exact;
+            }
+            .cat-cell {
+                writing-mode: vertical-lr;
+                text-align: center;
+                vertical-align: middle;
+                font-weight: bold;
+                background-color: #fcfcfc !important;
+                letter-spacing: 2px;
+                padding: 4px;
             }
         }
     </style>
@@ -276,8 +296,8 @@
 
                 <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg leading-relaxed">
                     <p class="font-bold text-slate-700 mb-1"><i class="fa-solid fa-circle-info"></i> 列印說明：</p>
-                    • 無編號欄位，採精簡雙欄排版。<br>
-                    • 點擊「產生並列印」後，將開啟瀏覽器列印視窗。<br>
+                    • 全面套用 <b>芫荽 (Iansui) 硬筆楷體</b> 字型。<br>
+                    • 圖書自動按「類別」進行跨欄垂直分類顯示。<br>
                     • 紙張建議選擇 <b>A4 直向</b>。
                 </div>
 
@@ -295,7 +315,7 @@
     </button>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwtas6wDz1YWgfQ0nDI3D6aJf2x5Pt5eFvYSyxDIMf4MEZqn1eLH4akAodhRHPqzHSItA/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwFIglSmazVioqlxXePaJyyIgjhLIBg0YlwHR0nk0eFDHcuF73BtEiBGPzjdbqiemwJFA/exec';
         let allGames = [];
         let currentTab = 'all';
         let selectedBoardgameCategory = '全部類別';
@@ -499,6 +519,81 @@
         function openPrintModal() { document.getElementById('printModal').classList.remove('hidden'); }
         function closePrintModal() { document.getElementById('printModal').classList.add('hidden'); }
 
+        // 產生圖書跨欄 HTML (類別 rowspan + 品項)
+        function generateBookCategoryHtml(items) {
+            const catMap = {};
+            items.forEach(item => {
+                const cats = parseTags(item.bookCategories);
+                const primaryCat = cats.length > 0 ? cats[0] : '其他/未分類';
+                if (!catMap[primaryCat]) catMap[primaryCat] = [];
+                catMap[primaryCat].push(item);
+            });
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">類別</th>
+                        <th style="width: 75%;">圖書名稱</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            const catNames = Object.keys(catMap);
+            if (catNames.length === 0) {
+                html += `<tr><td colspan="2" style="text-align: center; color: #888;">(尚無資料)</td></tr>`;
+            } else {
+                catNames.forEach(catName => {
+                    const list = catMap[catName];
+                    list.forEach((book, idx) => {
+                        html += `<tr>`;
+                        if (idx === 0) {
+                            html += `<td rowspan="${list.length}" class="cat-cell">${catName}</td>`;
+                        }
+                        html += `<td style="font-weight: 500;">${book.name || ''}</td></tr>`;
+                    });
+                });
+            }
+
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        // 產生雙欄桌遊 HTML
+        function generateStandardTwoColumnHtml(items, titleName) {
+            const mid = Math.ceil(items.length / 2);
+            const leftList = items.slice(0, mid);
+            const rightList = items.slice(mid);
+            const rowCount = Math.max(leftList.length, rightList.length);
+
+            let tableRows = '';
+            for (let i = 0; i < rowCount; i++) {
+                const leftName = leftList[i] ? leftList[i].name : '';
+                const rightName = rightList[i] ? rightList[i].name : '';
+                tableRows += `
+                    <tr>
+                        <td style="width: 50%; font-weight: 500;">${leftName}</td>
+                        <td style="width: 50%; font-weight: 500;">${rightName}</td>
+                    </tr>
+                `;
+            }
+
+            if (rowCount === 0) {
+                tableRows = `<tr><td style="width: 50%; text-align: center; color: #888;">(尚無資料)</td><td style="width: 50%;"></td></tr>`;
+            }
+
+            return `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>${titleName}</th>
+                            <th>${titleName}</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+            `;
+        }
+
         function executePrint() {
             const targetLoc = document.getElementById('printLocSelect').value;
             const printSec = document.getElementById('printSection');
@@ -512,29 +607,8 @@
 
                 const isBook = loc === '上層' || loc === '下層';
                 const typeTitle = isBook ? '圖書列表' : '桌遊與牌卡列表';
-                const colHeader = isBook ? '書名' : '桌遊品名';
 
-                // 切分雙欄資料 (Left / Right)
-                const mid = Math.ceil(items.length / 2);
-                const leftList = items.slice(0, mid);
-                const rightList = items.slice(mid);
-                const rowCount = Math.max(leftList.length, rightList.length);
-
-                let tableRows = '';
-                for (let i = 0; i < rowCount; i++) {
-                    const leftName = leftList[i] ? leftList[i].name : '';
-                    const rightName = rightList[i] ? rightList[i].name : '';
-                    tableRows += `
-                        <tr>
-                            <td style="width: 50%; font-weight: 500;">${leftName}</td>
-                            <td style="width: 50%; font-weight: 500;">${rightName}</td>
-                        </tr>
-                    `;
-                }
-
-                if (rowCount === 0) {
-                    tableRows = `<tr><td style="width: 50%; text-align: center; color: #888;">(尚無資料)</td><td style="width: 50%;"></td></tr>`;
-                }
+                let contentTableHtml = isBook ? generateBookCategoryHtml(items) : generateStandardTwoColumnHtml(items, '桌遊品名');
 
                 const pageDiv = document.createElement('div');
                 pageDiv.className = (idx < locations.length - 1) ? 'print-page-break' : '';
@@ -543,17 +617,7 @@
                         <h2 style="font-size: 18px; font-weight: bold; margin: 0;">櫃位名稱：[ ${loc} ] ${typeTitle}</h2>
                         <span style="font-size: 12px; color: #555;">共 ${items.length} 項</span>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>${colHeader}</th>
-                                <th>${colHeader}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
+                    ${contentTableHtml}
                 `;
                 printSec.appendChild(pageDiv);
             });
@@ -676,7 +740,7 @@
                 btn.classList.remove('opacity-100');
             }
         });
-    
+
         loadData();
     </script>
 </body>
