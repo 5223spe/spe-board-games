@@ -325,7 +325,7 @@
         let selectedCardCategory = '全部類別';
         let selectedBookCategory = '全部類別';
 
-        const DEFAULT_BG_CATS = ['派對遊戲', '陣營心理', '策略思考', '言語遊戲', '卡牌遊戲', '兒童遊戲', '破冰歡樂', '合作解謎'];
+        const DEFAULT_BG_CATS = ['派對遊戲', '陣營心理', '策略思考', '言語遊戲', '卡牌遊戲', '破冰歡樂', '合作解謎'];
         const DEFAULT_CARD_CATS = ['情緒表達', '自我探索', '人際溝通', '家庭關係', '職涯探索', '價值觀引導'];
         const DEFAULT_BOOK_CATS = ['心理輔導', '諮商技巧', '情緒管理', '親職教育', '自我成長'];
 
@@ -696,7 +696,10 @@
         }
 
         function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
-        function openAddModal() { document.getElementById('addModal').classList.remove('hidden'); }
+        function openAddModal() { 
+    renderCategoryButtons(); 
+    document.getElementById('addModal').classList.remove('hidden'); 
+}
         function closeAddModal() { document.getElementById('addModal').classList.add('hidden'); }
 
         async function submitNewGame(e) {
