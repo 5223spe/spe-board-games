@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳳新特教桌遊、牌卡與圖書檢索系統</title>
+    <title>鳳新特教 桌遊、牌卡與圖書檢索系統</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -638,24 +638,21 @@
 
         /* Modal & Form Helpers */
         function toggleFormFields() {
-    const type = document.getElementById('addItemType').value;
-    const gameFields = document.getElementById('gameFields');
-    const bookFields = document.getElementById('bookFields');
-    const locLabel = document.getElementById('locLabel');
+            const type = document.getElementById('addItemType').value;
+            const gameFields = document.getElementById('gameFields');
+            const bookFields = document.getElementById('bookFields');
+            const locLabel = document.getElementById('locLabel');
 
-    if (type === 'book') {
-        gameFields.classList.add('hidden');
-        bookFields.classList.remove('hidden');
-        locLabel.textContent = '放置位置 (如: 上層, 下層) *';
-    } else {
-        gameFields.classList.remove('hidden');
-        bookFields.classList.add('hidden');
-        locLabel.textContent = '放置位置 (如: A1, B2) *';
-    }
-    
-    // 關鍵修正：切換時重新渲染並更新選單資料
-    renderCategoryButtons();
-}
+            if (type === 'book') {
+                gameFields.classList.add('hidden');
+                bookFields.classList.remove('hidden');
+                locLabel.textContent = '放置位置 (如: 上層, 下層) *';
+            } else {
+                gameFields.classList.remove('hidden');
+                bookFields.classList.add('hidden');
+                locLabel.textContent = '放置位置 (如: A1, B2) *';
+            }
+        }
 
         function openMapModal(name, location, isBook) {
             document.getElementById('modalGameName').textContent = name;
