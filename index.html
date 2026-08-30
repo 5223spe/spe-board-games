@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>辦公室桌遊與卡牌檢索系統</title>
-    <!-- Tailwind CSS (負責畫面樣式) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons (負責圖示) -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
@@ -22,11 +22,11 @@
                     <i class="fa-solid fa-dice-d20 text-indigo-600"></i>
                     辦公室桌遊與卡牌檢索系統
                 </h1>
-                <p class="text-xs text-slate-500 mt-1">輕鬆尋找桌遊與牌卡放置位置（點擊卡片可查看櫃位地圖）</p>
+                <p class="text-xs text-slate-500 mt-1">輕鬆尋找桌遊與牌卡放置位置與分類（點擊卡片可查看櫃位地圖）</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="openAddModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm text-sm font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> 新增桌遊
+                    <i class="fa-solid fa-plus"></i> 新增桌遊 / 牌卡
                 </button>
                 <button onclick="loadData()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm text-sm font-medium flex items-center gap-2">
                     <i id="refreshIcon" class="fa-solid fa-rotate"></i> 重新整理
@@ -34,12 +34,36 @@
             </div>
         </header>
 
-        <!-- Search Bar -->
-        <div class="mb-6">
-            <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋桌遊名稱或位置（如：A1、B2）..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        <!-- Search & Category Filter Section -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm space-y-4">
+            <!-- 搜尋框 -->
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋名稱、位置（如：A櫃中層）或主題..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm transition-all">
+            </div>
+
+            <!-- 桌遊類別按鈕列 -->
+            <div>
+                <span class="text-xs font-bold text-slate-400 block mb-2">桌遊類別</span>
+                <div id="boardgameCategoryButtons" class="flex flex-wrap gap-2">
+                    <!-- JS 動態生成或預設 -->
+                </div>
+            </div>
+
+            <!-- 牌卡類別按鈕列 -->
+            <div>
+                <span class="text-xs font-bold text-slate-400 block mb-2">牌卡類別</span>
+                <div id="cardCategoryButtons" class="flex flex-wrap gap-2">
+                    <!-- JS 動態生成或預設 -->
+                </div>
+            </div>
         </div>
 
-        <!-- Data Grid & Loading -->
+        <!-- 結果計數與 Data Grid -->
+        <div class="mb-4 text-xs font-bold text-slate-500">
+            共找到 <span id="itemCount" class="text-indigo-600 font-extrabold text-sm">0</span> 項目
+        </div>
+
         <div id="loading" class="text-center py-12 text-slate-400">
             <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-indigo-600"></i>
             <p class="text-sm">載入雲端試算表資料中...</p>
@@ -107,10 +131,15 @@
         </div>
     </div>
 
-    <!-- JavaScript 邏輯 (完全無 Vue 衝突) -->
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwtas6wDz1YWgfQ0nDI3D6aJf2x5Pt5eFvYSyxDIMf4MEZqn1eLH4akAodhRHPqzHSItA/exec';
         let allGames = [];
+        let selectedBoardgameCategory = '全部類別';
+        let selectedCardCategory = '全部類別';
+
+        // 預設選單選項 (亦可動態補充)
+        const DEFAULT_BG_CATS = ['破冰歡樂', '陣營對抗', '策略思考', '合作解謎', '派對遊戲', '陣營心理'];
+        const DEFAULT_CARD_CATS = ['情緒表達', '自我探索', '人際溝通', '家庭關係', '職涯探索', '價值觀引導'];
 
         async function loadData() {
             document.getElementById('loading').classList.remove('hidden');
@@ -120,7 +149,9 @@
             try {
                 const res = await fetch(API_URL);
                 allGames = await res.json();
-                renderCards(allGames);
+                
+                renderCategoryButtons();
+                filterGames();
             } catch (err) {
                 console.error('Data Error:', err);
                 alert('資料載入失敗！');
@@ -130,12 +161,78 @@
             }
         }
 
+        // 渲染分類按鈕
+        function renderCategoryButtons() {
+            // 桌遊類別按鈕
+            const bgContainer = document.getElementById('boardgameCategoryButtons');
+            const bgCats = ['全部類別', ...DEFAULT_BG_CATS];
+            bgContainer.innerHTML = bgCats.map(cat => {
+                const active = selectedBoardgameCategory === cat;
+                const activeClass = active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+                return `<button onclick="selectBgCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${activeClass}">${cat}</button>`;
+            }).join('');
+
+            // 牌卡類別按鈕
+            const cardContainer = document.getElementById('cardCategoryButtons');
+            const cardCats = ['全部類別', ...DEFAULT_CARD_CATS];
+            cardContainer.innerHTML = cardCats.map(cat => {
+                const active = selectedCardCategory === cat;
+                const activeClass = active ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+                return `<button onclick="selectCardCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${activeClass}">${cat}</button>`;
+            }).join('');
+        }
+
+        function selectBgCategory(cat) {
+            selectedBoardgameCategory = cat;
+            renderCategoryButtons();
+            filterGames();
+        }
+
+        function selectCardCategory(cat) {
+            selectedCardCategory = cat;
+            renderCategoryButtons();
+            filterGames();
+        }
+
+        // 資料解析與卡片渲染
+        const parseTags = (val) => {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            return String(val).split(',').map(s => s.trim()).filter(Boolean);
+        };
+
+        function filterGames() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            const filtered = allGames.filter(g => {
+                const name = (g.name || g.Name || '').toLowerCase();
+                const loc = (g.location || g.Location || '').toLowerCase();
+                const notes = (g.notes || g.Notes || '').toLowerCase();
+
+                const bgTags = parseTags(g.boardgameCategories || g.boardGameCategories);
+                const cardTags = parseTags(g.cardCategories || g.cardCategory);
+
+                // 文字搜尋比對
+                const matchQuery = !query || name.includes(query) || loc.includes(query) || notes.includes(query);
+
+                // 桌遊類別比對
+                const matchBgCat = selectedBoardgameCategory === '全部類別' || bgTags.includes(selectedBoardgameCategory);
+
+                // 牌卡類別比對
+                const matchCardCat = selectedCardCategory === '全部類別' || cardTags.includes(selectedCardCategory);
+
+                return matchQuery && matchBgCat && matchCardCat;
+            });
+
+            document.getElementById('itemCount').textContent = filtered.length;
+            renderCards(filtered);
+        }
+
         function renderCards(games) {
             const grid = document.getElementById('gamesGrid');
             grid.innerHTML = '';
 
             games.forEach(game => {
-                // 相容大小寫與不同命名
                 const name = game.name || game.Name || '未命名桌遊';
                 const location = game.location || game.Location || '未標示';
                 const players = game.players || game.Players || '';
@@ -143,17 +240,9 @@
                 const notes = game.notes || game.Notes || '';
                 const imageUrl = game.imageUrl || game.ImageUrl || game.image || '';
 
-                // 解析標籤 (支援陣列或逗號字串)
-                const parseTags = (val) => {
-                    if (!val) return [];
-                    if (Array.isArray(val)) return val;
-                    return String(val).split(',').map(s => s.trim()).filter(Boolean);
-                };
-
                 const bgTags = parseTags(game.boardgameCategories || game.boardGameCategories);
                 const cardTags = parseTags(game.cardCategories || game.cardCategory);
 
-                // 桌遊類別 HTML
                 const bgCatHtml = bgTags.length ? `
                     <div class="mb-3">
                         <span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span>
@@ -162,7 +251,6 @@
                         </div>
                     </div>` : '';
 
-                // 牌卡類別 HTML
                 const cardCatHtml = cardTags.length ? `
                     <div class="mb-3">
                         <span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span>
@@ -171,7 +259,6 @@
                         </div>
                     </div>` : '';
 
-                // 圖片 HTML (無圖片時顯示「無提供外盒照片」灰底區塊)
                 const imageArea = imageUrl ? 
                     `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover">` : 
                     `<div class="w-full h-44 bg-slate-100/80 flex flex-col items-center justify-center text-slate-400">
@@ -179,7 +266,6 @@
                         <span class="text-xs font-medium">無提供外盒照片</span>
                      </div>`;
 
-                // 備註 HTML
                 const notesArea = notes ? 
                     `<div class="px-5 py-3 bg-slate-50/80 border-t border-slate-100 text-xs text-slate-500 flex items-start gap-1.5">
                         <i class="fa-solid fa-circle-info text-slate-400 mt-0.5"></i> <span>${notes}</span>
@@ -190,7 +276,6 @@
                 
                 card.innerHTML = `
                     <div>
-                        <!-- 圖片與位置標籤 -->
                         <div class="relative">
                             ${imageArea}
                             <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm flex items-center gap-1">
@@ -198,13 +283,9 @@
                             </span>
                         </div>
 
-                        <!-- 內容區域 -->
                         <div class="p-5">
-                            <h3 class="font-bold text-slate-900 text-lg mb-2">
-                                ${name}
-                            </h3>
+                            <h3 class="font-bold text-slate-900 text-lg mb-2">${name}</h3>
 
-                            <!-- 人數與時間 -->
                             <div class="flex items-center gap-3 text-xs text-slate-500 mb-4 pb-3 border-b border-slate-100">
                                 ${players ? `<span class="flex items-center gap-1"><i class="fa-solid fa-users text-slate-400"></i> ${players}</span>` : ''}
                                 ${duration ? `<span class="flex items-center gap-1"><i class="fa-solid fa-clock text-slate-400"></i> ${duration}</span>` : ''}
@@ -217,12 +298,12 @@
                     ${notesArea}
                 `;
 
-                // 點擊觸發彈窗
                 card.onclick = () => openMapModal(name, location);
                 grid.appendChild(card);
             });
         }
 
+        // Modal 與 表單操作
         function openMapModal(name, location) {
             document.getElementById('modalGameName').textContent = name;
             document.getElementById('modalGameLocation').textContent = location || '未標示';
@@ -244,21 +325,7 @@
             document.getElementById('mapModal').classList.remove('hidden');
         }
 
-        function closeMapModal() {
-            document.getElementById('mapModal').classList.add('hidden');
-        }
-
-        function filterGames() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = allGames.filter(g => {
-                const name = (g.name || g.Name || '').toLowerCase();
-                const loc = (g.location || g.Location || '').toLowerCase();
-                const notes = (g.notes || g.Notes || '').toLowerCase();
-                return name.includes(query) || loc.includes(query) || notes.includes(query);
-            });
-            renderCards(filtered);
-        }
-
+        function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
         function openAddModal() { document.getElementById('addModal').classList.remove('hidden'); }
         function closeAddModal() { document.getElementById('addModal').classList.add('hidden'); }
 
