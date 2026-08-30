@@ -9,10 +9,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 引入芫荽字型 (Iansui) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Iansui&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/iansui@5.0.1/index.css">
 
     <style>
         body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
@@ -661,7 +658,7 @@
                     const el = document.getElementById(`loc-${loc}`);
                     if (location.includes(loc)) {
                         el.className = "h-20 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner";
-                        el.innerHTML = `${loc} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-1">你在這裡!</span>`;
+                        el.innerHTML = `${loc} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-1">在這裡!</span>`;
                     } else {
                         el.className = "h-20 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500";
                         el.innerHTML = loc;
