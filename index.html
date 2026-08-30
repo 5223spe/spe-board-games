@@ -10,6 +10,47 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+
+        /* 列印專用 CSS 樣式 */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+                color: black !important;
+            }
+            /* 隱藏網頁原本的所有元件 */
+            .no-print, header, .flex.border-b, .bg-white.border, #itemCount, #loading, #gamesGrid, #mapModal, #addModal, #backToTopBtn {
+                display: none !important;
+            }
+            /* 只顯示列印區域 */
+            #printSection {
+                display: block !important;
+            }
+            .print-page-break {
+                page-break-after: always;
+                break-after: page;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+                font-size: 13px;
+            }
+            th, td {
+                border: 1px solid #333 !important;
+                padding: 6px 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f0f0f0 !important;
+                font-weight: bold;
+                -webkit-print-color-adjust: exact;
+            }
+        }
     </style>
 </head>
 <body class="text-slate-800 p-4 sm:p-6">
@@ -25,6 +66,9 @@
                 <p class="text-xs text-slate-500 mt-1">輕鬆尋找桌遊、牌卡與圖書放置位置（點擊卡片可查看對應櫃位地圖）</p>
             </div>
             <div class="flex gap-2">
+                <button onclick="openPrintModal()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 shadow-sm text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> 列印清單
+                </button>
                 <button onclick="openAddModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm text-sm font-medium flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> 新增項目
                 </button>
@@ -87,6 +131,9 @@
         <div id="gamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
+    <!-- 列印專用隱藏區域 -->
+    <div id="printSection" class="hidden"></div>
+
     <!-- 1. 櫃位示意圖 Modal -->
     <div id="mapModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative">
@@ -98,7 +145,6 @@
                 <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
             </div>
 
-            <!-- 桌遊/牌卡櫃地圖 (2x2) -->
             <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold">
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
                 <div class="col-span-2 grid grid-rows-2 gap-1 h-32">
@@ -114,7 +160,6 @@
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
             </div>
 
-            <!-- 圖書櫃地圖 (上下層) -->
             <div id="bookMap" class="border-4 border-slate-800 bg-slate-200 p-2 rounded-lg space-y-2 hidden">
                 <div id="loc-上層" class="h-20 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">
                     上層
@@ -157,7 +202,6 @@
                     <input type="text" id="addLoc" required class="w-full p-2 border rounded-lg text-sm">
                 </div>
 
-                <!-- 桌遊/牌卡專用欄位 -->
                 <div id="gameFields" class="space-y-3">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -179,7 +223,6 @@
                     </div>
                 </div>
 
-                <!-- 圖書專用欄位 -->
                 <div id="bookFields" class="space-y-3 hidden">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">作者</label>
@@ -209,10 +252,52 @@
         </div>
     </div>
 
+    <!-- 3. 列印選項 Modal -->
+    <div id="printModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h2 class="text-xl font-bold text-slate-800">列印清單設定</h2>
+                <button onclick="closePrintModal()" class="text-slate-400 text-xl">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">選擇欲列印的區域</label>
+                    <select id="printLocSelect" class="w-full p-2 border rounded-lg text-sm bg-slate-50 font-bold">
+                        <option value="ALL">全部位置 (依櫃位分頁印出)</option>
+                        <option value="A1">桌遊 - A1 區</option>
+                        <option value="A2">桌遊 - A2 區</option>
+                        <option value="B1">桌遊 - B1 區</option>
+                        <option value="B2">桌遊 - B2 區</option>
+                        <option value="上層">圖書 - 上層</option>
+                        <option value="下層">圖書 - 下層</option>
+                    </select>
+                </div>
+
+                <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg leading-relaxed">
+                    <p class="font-bold text-slate-700 mb-1"><i class="fa-solid fa-circle-info"></i> 列印說明：</p>
+                    • 無編號欄位，採精簡雙欄排版。<br>
+                    • 點擊「產生並列印」後，將開啟瀏覽器列印視窗。<br>
+                    • 紙張建議選擇 <b>A4 直向</b>。
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closePrintModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button>
+                    <button type="button" onclick="executePrint()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">產生並列印</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 回到頂部懸浮按鈕 -->
+    <button id="backToTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 right-6 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all opacity-0 pointer-events-none z-40">
+        <i class="fa-solid fa-arrow-up text-lg w-5 h-5 flex items-center justify-center"></i>
+    </button>
+
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwFIglSmazVioqlxXePaJyyIgjhLIBg0YlwHR0nk0eFDHcuF73BtEiBGPzjdbqiemwJFA/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwtas6wDz1YWgfQ0nDI3D6aJf2x5Pt5eFvYSyxDIMf4MEZqn1eLH4akAodhRHPqzHSItA/exec';
         let allGames = [];
-        let currentTab = 'all'; // 'all', 'game', 'book'
+        let currentTab = 'all';
         let selectedBoardgameCategory = '全部類別';
         let selectedCardCategory = '全部類別';
         let selectedBookCategory = '全部類別';
@@ -247,7 +332,6 @@
             }
         }
 
-        // 切換主 Tab (全部 / 桌遊牌卡 / 圖書)
         function switchMainTab(tab) {
             currentTab = tab;
             const tabs = ['all', 'game', 'book'];
@@ -261,7 +345,6 @@
                 }
             });
 
-            // 根據切換的 Tab 控制顯示哪些細項標籤篩選器
             document.getElementById('bgCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
             document.getElementById('cardCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
             document.getElementById('bookCatWrapper').style.display = (tab === 'all' || tab === 'book') ? 'block' : 'none';
@@ -310,11 +393,9 @@
             const filtered = allGames.filter(g => {
                 const isBook = g.type === 'book' || (g.location || '').includes('層');
 
-                // 1. 根據 Tab 進行大分類篩選
                 if (currentTab === 'game' && isBook) return false;
                 if (currentTab === 'book' && !isBook) return false;
 
-                // 2. 關鍵字與細項標籤過濾
                 const name = (g.name || '').toLowerCase();
                 const author = (g.author || '').toLowerCase();
                 const loc = (g.location || '').toLowerCase();
@@ -373,7 +454,7 @@
                     </div>` : '';
 
                 const imageArea = imageUrl ? 
-                    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover">` : 
+                    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover" loading="lazy">` : 
                     `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
                         <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
                         <span class="text-xs font-medium">無提供照片</span>
@@ -414,6 +495,76 @@
             });
         }
 
+        /* ----- 列印功能相關邏輯 ----- */
+        function openPrintModal() { document.getElementById('printModal').classList.remove('hidden'); }
+        function closePrintModal() { document.getElementById('printModal').classList.add('hidden'); }
+
+        function executePrint() {
+            const targetLoc = document.getElementById('printLocSelect').value;
+            const printSec = document.getElementById('printSection');
+            printSec.innerHTML = '';
+
+            const locations = (targetLoc === 'ALL') ? ['A1', 'A2', 'B1', 'B2', '上層', '下層'] : [targetLoc];
+
+            locations.forEach((loc, idx) => {
+                const items = allGames.filter(g => (g.location || '').toUpperCase().includes(loc));
+                if (items.length === 0 && targetLoc !== 'ALL') return;
+
+                const isBook = loc === '上層' || loc === '下層';
+                const typeTitle = isBook ? '圖書列表' : '桌遊與牌卡列表';
+                const colHeader = isBook ? '書名' : '桌遊品名';
+
+                // 切分雙欄資料 (Left / Right)
+                const mid = Math.ceil(items.length / 2);
+                const leftList = items.slice(0, mid);
+                const rightList = items.slice(mid);
+                const rowCount = Math.max(leftList.length, rightList.length);
+
+                let tableRows = '';
+                for (let i = 0; i < rowCount; i++) {
+                    const leftName = leftList[i] ? leftList[i].name : '';
+                    const rightName = rightList[i] ? rightList[i].name : '';
+                    tableRows += `
+                        <tr>
+                            <td style="width: 50%; font-weight: 500;">${leftName}</td>
+                            <td style="width: 50%; font-weight: 500;">${rightName}</td>
+                        </tr>
+                    `;
+                }
+
+                if (rowCount === 0) {
+                    tableRows = `<tr><td style="width: 50%; text-align: center; color: #888;">(尚無資料)</td><td style="width: 50%;"></td></tr>`;
+                }
+
+                const pageDiv = document.createElement('div');
+                pageDiv.className = (idx < locations.length - 1) ? 'print-page-break' : '';
+                pageDiv.innerHTML = `
+                    <div style="margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <h2 style="font-size: 18px; font-weight: bold; margin: 0;">櫃位名稱：[ ${loc} ] ${typeTitle}</h2>
+                        <span style="font-size: 12px; color: #555;">共 ${items.length} 項</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>${colHeader}</th>
+                                <th>${colHeader}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                `;
+                printSec.appendChild(pageDiv);
+            });
+
+            closePrintModal();
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        /* Modal & Form Helpers */
         function toggleFormFields() {
             const type = document.getElementById('addItemType').value;
             const gameFields = document.getElementById('gameFields');
@@ -515,6 +666,17 @@
             }
         }
 
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backToTopBtn');
+            if (window.scrollY > 300) {
+                btn.classList.remove('opacity-0', 'pointer-events-none');
+                btn.classList.add('opacity-100');
+            } else {
+                btn.classList.add('opacity-0', 'pointer-events-none');
+                btn.classList.remove('opacity-100');
+            }
+        });
+    
         loadData();
     </script>
 </body>
