@@ -512,7 +512,7 @@
                     </div>` : '';
 
                 const imageArea = imageUrl ? 
-                    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400\\'><i class=\\'fa-solid fa-image-slash text-3xl mb-1 text-slate-300\\'></i><span class=\\'text-xs font-medium\\'>圖片載入失敗 (請確認權限)</span></div>';">` : 
+                    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-contain bg-slate-100 p-2" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400\\'><i class=\\'fa-solid fa-image-slash text-3xl mb-1 text-slate-300\\'></i><span class=\\'text-xs font-medium\\'>圖片載入失敗 (請確認權限)</span></div>';">` : 
                     `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
                         <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
                         <span class="text-xs font-medium">無提供照片</span>
