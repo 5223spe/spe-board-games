@@ -495,7 +495,7 @@
 
                 // 產生極簡安全的圖片載入區塊 (避免 JS 破字串)
                 const imageArea = imageUrl ? 
-                    `<img src="${imageUrl}" alt="${name}" referrerpolicy="no-referrer" class="w-full h-44 object-cover" loading="lazy" onerror="this.onerror=null; this.src=''; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    `<img src="${imageUrl}" alt="${name}" referrerpolicy="no-referrer" class="w-full h-44 object-contain bg-slate-100 p-2" loading="lazy" ...>
                      <div class="w-full h-44 bg-slate-100 items-center justify-center text-slate-400" style="display:none;">
                         <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
                         <span class="text-xs font-medium">圖片載入失敗</span>
