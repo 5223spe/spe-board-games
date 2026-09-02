@@ -189,7 +189,7 @@
         </div>
     </div>
 
-    <!-- 2. 新增 Modal (支援選單+可自行打字) -->
+    <!-- 2. 新增 Modal -->
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
@@ -228,14 +228,12 @@
                         </div>
                     </div>
 
-                    <!-- 桌遊類別 (支援下拉選單 + 打字) -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊類別 (點選或輸入)</label>
                         <input type="text" id="addBgCats" list="listBgCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
                         <datalist id="listBgCats"></datalist>
                     </div>
 
-                    <!-- 牌卡類別 (支援下拉選單 + 打字) -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">牌卡類別 (點選或輸入)</label>
                         <input type="text" id="addCardCats" list="listCardCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
@@ -249,7 +247,6 @@
                         <input type="text" id="addAuthor" placeholder="例：被討厭的勇氣作者" class="w-full p-2 border rounded-lg text-sm">
                     </div>
 
-                    <!-- 圖書類別 (支援下拉選單 + 打字) -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">圖書類別 (點選或輸入)</label>
                         <input type="text" id="addBookCats" list="listBookCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
@@ -329,6 +326,17 @@
         const DEFAULT_CARD_CATS = ['情緒表達', '自我探索', '人際溝通', '家庭關係', '職涯探索', '價值觀引導'];
         const DEFAULT_BOOK_CATS = ['翻譯文學', '心理諮商', '兩性', '家庭', '情緒', '人格潛能', '運動', '教養', '升學工作', '特教', '教育', '小說', '散文', '華文現代詩', '心靈成長', '繪本-自我認同', '繪本-生命教育', '繪本-親情/友誼', '繪本-心靈成長', '繪本-生活教育', '繪本-翻譯圖文', '繪本-其他'];
 
+        // 自動整理並轉換 Google Drive 圖檔連結格式
+        function formatImageUrl(url) {
+            if (!url) return '';
+            url = String(url).trim();
+            const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (driveMatch && driveMatch[1]) {
+                return 'https://lh3.googleusercontent.com/d/' + driveMatch[1];
+            }
+            return url;
+        }
+
         const parseTags = (val) => {
             if (!val) return [];
             if (Array.isArray(val)) return val;
@@ -380,14 +388,12 @@
             const dynamicCardCats = new Set(DEFAULT_CARD_CATS);
             const dynamicBookCats = new Set(DEFAULT_BOOK_CATS);
 
-            // 從試算表資料中搜集現有的所有類別（含新增的自訂類別）
             allGames.forEach(g => {
                 parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
                 parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
                 parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
             });
 
-            // 1. 渲染頂部過濾按鈕
             document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
                 const active = selectedBoardgameCategory === cat;
                 return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
@@ -403,7 +409,6 @@
                 return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
             }).join('');
 
-            // 2. 動態更新「新增資料」彈出視窗的選單選單選項（自動學習）
             document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
             document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
             document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
@@ -458,7 +463,9 @@
                 const players = game.players || '';
                 const duration = game.duration || '';
                 const notes = game.notes || '';
-                const imageUrl = game.imageUrl || '';
+                
+                // 轉譯轉換圖片網址
+                const imageUrl = formatImageUrl(game.imageUrl);
                 const isBook = game.type === 'book' || location.includes('層');
 
                 const bgTags = parseTags(game.boardgameCategories);
@@ -483,21 +490,25 @@
                         <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
                     </div>` : '';
 
-                const imageArea = imageUrl ? 
-                    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover" loading="lazy">` : 
-                    `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
+                // 產生包含防盜鏈阻斷 (no-referrer) 以及加載錯誤自動備援 (onerror) 的圖片 HTML
+                const fallbackHtml = `
+                    <div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
                         <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
                         <span class="text-xs font-medium">無提供照片</span>
-                     </div>`;
+                    </div>`;
+
+                const imageArea = imageUrl ? 
+                    `<img src="${imageUrl}" alt="${name}" referrerpolicy="no-referrer" class="w-full h-44 object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML=\`${fallbackHtml.replace(/\n/g, '')}\`;">` : 
+                    fallbackHtml;
 
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between";
                 
                 card.innerHTML = `
                     <div>
-                        <div class="relative">
+                        <div class="relative overflow-hidden bg-slate-100">
                             ${imageArea}
-                            <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm">
+                            <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm z-10">
                                 <i class="fa-solid fa-location-dot text-amber-600"></i> ${location}
                             </span>
                         </div>
@@ -697,9 +708,9 @@
 
         function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
         function openAddModal() { 
-    renderCategoryButtons(); 
-    document.getElementById('addModal').classList.remove('hidden'); 
-}
+            renderCategoryButtons(); 
+            document.getElementById('addModal').classList.remove('hidden'); 
+        }
         function closeAddModal() { document.getElementById('addModal').classList.add('hidden'); }
 
         async function submitNewGame(e) {
