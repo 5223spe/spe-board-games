@@ -141,12 +141,6 @@
                 
                 card.innerHTML = `
                     <div>
-                        ${game.imageUrl 
-                            ? `<div class="w-full h-48 mb-3 overflow-hidden rounded-lg bg-slate-100 flex items-center justify-center">
-                                 <img src="${game.imageUrl}" alt="${game.name}" class="w-full h-full object-cover">
-                               </div>`
-                            : ''
-                        }
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-bold text-slate-900 text-lg">${game.name}</h3>
                             <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded text-xs font-bold">
