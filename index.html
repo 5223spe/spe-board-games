@@ -464,8 +464,11 @@
                 const duration = game.duration || '';
                 const notes = game.notes || '';
                 
-                // 轉譯轉換圖片網址
-                const imageUrl = formatImageUrl(game.imageUrl);
+                // 自動將 Google Drive 網址轉換為直連格式
+                const rawUrl = String(game.imageUrl || '').trim();
+                const driveMatch = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || rawUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                const imageUrl = driveMatch && driveMatch[1] ? 'https://lh3.googleusercontent.com/d/' + driveMatch[1] : rawUrl;
+
                 const isBook = game.type === 'book' || location.includes('層');
 
                 const bgTags = parseTags(game.boardgameCategories);
@@ -490,16 +493,17 @@
                         <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
                     </div>` : '';
 
-                // 產生包含防盜鏈阻斷 (no-referrer) 以及加載錯誤自動備援 (onerror) 的圖片 HTML
-                const fallbackHtml = `
-                    <div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
+                // 產生極簡安全的圖片載入區塊 (避免 JS 破字串)
+                const imageArea = imageUrl ? 
+                    `<img src="${imageUrl}" alt="${name}" referrerpolicy="no-referrer" class="w-full h-44 object-cover" loading="lazy" onerror="this.onerror=null; this.src=''; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                     <div class="w-full h-44 bg-slate-100 items-center justify-center text-slate-400" style="display:none;">
+                        <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
+                        <span class="text-xs font-medium">圖片載入失敗</span>
+                     </div>` : 
+                    `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
                         <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
                         <span class="text-xs font-medium">無提供照片</span>
-                    </div>`;
-
-                const imageArea = imageUrl ? 
-                    `<img src="${imageUrl}" alt="${name}" referrerpolicy="no-referrer" class="w-full h-44 object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML=\`${fallbackHtml.replace(/\n/g, '')}\`;">` : 
-                    fallbackHtml;
+                     </div>`;
 
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between";
