@@ -335,6 +335,21 @@
             return String(val).split(/[,/、]/).map(s => s.trim()).filter(Boolean);
         };
 
+        // 自動將 Google Drive 分享連結轉換為 Google 高速圖片 CDN 網址
+        function fixGoogleDriveUrl(url) {
+            if (!url) return '';
+            
+            if (url.includes('drive.google.com')) {
+                let fileId = '';
+                const idMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (idMatch && idMatch[1]) {
+                    fileId = idMatch[1];
+                    return `https://lh3.googleusercontent.com/d/${fileId}`;
+                }
+            }
+            return url;
+        }
+
         // 將文字中的 HTTP/HTTPS 網址轉成可點擊的超連結
         function formatNotesWithLinks(text) {
             if (!text) return '';
@@ -412,7 +427,7 @@
                 return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
             }).join('');
 
-            // 2. 動態更新「新增資料」彈出視窗的選單選單選項（自動學習）
+            // 2. 動態更新「新增資料」彈出視窗的選單選項（自動學習）
             document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
             document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
             document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
@@ -457,87 +472,85 @@
         }
 
         function renderCards(games) {
-    const grid = document.getElementById('gamesGrid');
-    grid.innerHTML = '';
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
 
-    games.forEach(game => {
-        const name = game.name || '未命名項目';
-        const author = game.author || '';
-        const location = game.location || '未標示';
-        const players = game.players || '';
-        const duration = game.duration || '';
-        const notes = game.notes || '';
-        
-        // 修正 1：相容各種試算表可能出現的圖片欄位名稱 (imageUrl, image, photo, img)
-        const imageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
-        
-        // 修正 2：更寬鬆判斷是否為圖書
-        const isBook = game.itemType === 'book' || game.type === 'book' || location.includes('層');
+            games.forEach(game => {
+                const name = game.name || '未命名項目';
+                const author = game.author || '';
+                const location = game.location || '未標示';
+                const players = game.players || '';
+                const duration = game.duration || '';
+                const notes = game.notes || '';
+                
+                // 取得欄位網址並自動透過 CDN 轉址機制優化
+                const rawImageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
+                const imageUrl = fixGoogleDriveUrl(rawImageUrl);
+                
+                const isBook = game.itemType === 'book' || game.type === 'book' || location.includes('層');
 
-        const bgTags = parseTags(game.boardgameCategories);
-        const cardTags = parseTags(game.cardCategories);
-        const bookTags = parseTags(game.bookCategories);
+                const bgTags = parseTags(game.boardgameCategories);
+                const cardTags = parseTags(game.cardCategories);
+                const bookTags = parseTags(game.bookCategories);
 
-        const bgCatHtml = bgTags.length ? `
-            <div class="mb-2">
-                <span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span>
-                <div class="flex flex-wrap gap-1">${bgTags.map(t => `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-            </div>` : '';
+                const bgCatHtml = bgTags.length ? `
+                    <div class="mb-2">
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span>
+                        <div class="flex flex-wrap gap-1">${bgTags.map(t => `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
+                    </div>` : '';
 
-        const cardCatHtml = cardTags.length ? `
-            <div class="mb-2">
-                <span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span>
-                <div class="flex flex-wrap gap-1">${cardTags.map(t => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-            </div>` : '';
+                const cardCatHtml = cardTags.length ? `
+                    <div class="mb-2">
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span>
+                        <div class="flex flex-wrap gap-1">${cardTags.map(t => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
+                    </div>` : '';
 
-        const bookCatHtml = bookTags.length ? `
-            <div class="mb-2">
-                <span class="text-[11px] font-semibold text-slate-400 block mb-1">圖書類別</span>
-                <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-            </div>` : '';
+                const bookCatHtml = bookTags.length ? `
+                    <div class="mb-2">
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">圖書類別</span>
+                        <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
+                    </div>` : '';
 
-        // 修正 3：加入 onerror 備用機制，如果圖片連結載入失敗自動顯示預設圖，避免卡片破圖
-        const imageArea = imageUrl ? 
-            `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400\\'><i class=\\'fa-solid fa-image-slash text-3xl mb-1 text-slate-300\\'></i><span class=\\'text-xs font-medium\\'>圖片載入失敗</span></div>';">` : 
-            `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
-                <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
-                <span class="text-xs font-medium">無提供照片</span>
-             </div>`;
+                const imageArea = imageUrl ? 
+                    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400\\'><i class=\\'fa-solid fa-image-slash text-3xl mb-1 text-slate-300\\'></i><span class=\\'text-xs font-medium\\'>圖片載入失敗 (請確認權限)</span></div>';">` : 
+                    `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
+                        <span class="text-xs font-medium">無提供照片</span>
+                     </div>`;
 
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between";
-        
-        card.innerHTML = `
-            <div>
-                <div class="relative">
-                    ${imageArea}
-                    <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm">
-                        <i class="fa-solid fa-location-dot text-amber-600"></i> ${location}
-                    </span>
-                </div>
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="relative">
+                            ${imageArea}
+                            <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm">
+                                <i class="fa-solid fa-location-dot text-amber-600"></i> ${location}
+                            </span>
+                        </div>
 
-                <div class="p-5">
-                    <h3 class="font-bold text-slate-900 text-lg mb-1">${name}</h3>
-                    ${author ? `<p class="text-xs font-medium text-slate-500 mb-3"><i class="fa-solid fa-user-pen text-slate-400 mr-1"></i>${author}</p>` : ''}
+                        <div class="p-5">
+                            <h3 class="font-bold text-slate-900 text-lg mb-1">${name}</h3>
+                            ${author ? `<p class="text-xs font-medium text-slate-500 mb-3"><i class="fa-solid fa-user-pen text-slate-400 mr-1"></i>${author}</p>` : ''}
 
-                    ${(players || duration) ? `
-                    <div class="flex items-center gap-3 text-xs text-slate-500 mb-3 pb-2 border-b border-slate-100">
-                        ${players ? `<span><i class="fa-solid fa-users"></i> ${players}</span>` : ''}
-                        ${duration ? `<span><i class="fa-solid fa-clock"></i> ${duration}</span>` : ''}
-                    </div>` : ''}
+                            ${(players || duration) ? `
+                            <div class="flex items-center gap-3 text-xs text-slate-500 mb-3 pb-2 border-b border-slate-100">
+                                ${players ? `<span><i class="fa-solid fa-users"></i> ${players}</span>` : ''}
+                                ${duration ? `<span><i class="fa-solid fa-clock"></i> ${duration}</span>` : ''}
+                            </div>` : ''}
 
-                    ${bgCatHtml}
-                    ${cardCatHtml}
-                    ${bookCatHtml}
-                </div>
-            </div>
-            ${notes ? `<div class="px-5 py-2.5 bg-slate-50 border-t text-xs text-slate-500 break-all">${formatNotesWithLinks(notes)}</div>` : ''}
-        `;
+                            ${bgCatHtml}
+                            ${cardCatHtml}
+                            ${bookCatHtml}
+                        </div>
+                    </div>
+                    ${notes ? `<div class="px-5 py-2.5 bg-slate-50 border-t text-xs text-slate-500 break-all">${formatNotesWithLinks(notes)}</div>` : ''}
+                `;
 
-        card.onclick = () => openMapModal(name, location, isBook);
-        grid.appendChild(card);
-    });
-}
+                card.onclick = () => openMapModal(name, location, isBook);
+                grid.appendChild(card);
+            });
         }
 
         /* ----- 列印功能相關邏輯 ----- */
