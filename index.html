@@ -162,8 +162,8 @@
                 <p id="boardgameLocationSubtitle" class="text-lg font-bold text-indigo-600 hidden">(6F 潛能教室)</p>
                 <!-- 地點 2：資藝教室 -->
                 <p id="bookLocationSubtitle" class="text-lg font-bold text-amber-600 hidden">(6F 資藝教室)</p>
-                <!-- 地點 3：wei 的座位後方 -->
-                <p id="weiLocationSubtitle" class="text-lg font-bold text-emerald-600 hidden">(wei 的座位後方)</p>
+                <!-- 地點 3：葳的座位後方 -->
+                <p id="weiLocationSubtitle" class="text-lg font-bold text-emerald-600 hidden">(葳的座位後方)</p>
             </div>
 
             <!-- 示意圖 1：6F 潛能教室 (A1, A2, B1, B2) -->
@@ -192,11 +192,11 @@
                 </div>
             </div>
 
-            <!-- 示意圖 3：wei 的座位後方 (帶箱子圖示) -->
+            <!-- 示意圖 3：葳的座位後方 (帶箱子圖示) -->
             <div id="weiMap" class="border-4 border-slate-800 bg-slate-100 p-6 rounded-lg hidden">
                 <div class="bg-amber-400 border-2 border-amber-600 rounded-xl p-6 text-center text-amber-950 font-bold shadow-inner flex flex-col items-center justify-center">
                     <i class="fa-solid fa-box-archive text-5xl mb-2 text-amber-900"></i>
-                    <span class="text-base">wei 的座位後方收納箱</span>
+                    <span class="text-base">葳的座位後方紙箱</span>
                     <span class="text-xs bg-amber-700 text-white px-2 py-0.5 rounded mt-2">放置於此</span>
                 </div>
             </div>
@@ -716,7 +716,7 @@
 
             const rawLoc = String(location || '').toUpperCase();
 
-            // 判斷是否為第三個獨立位置：wei 的座位後方
+            // 判斷是否為第三個獨立位置：葳的座位後方
             if (rawLoc.includes('WEI') || rawLoc.includes('座位') || rawLoc.includes('後方')) {
                 weiMap.classList.remove('hidden');
                 weiSub.classList.remove('hidden');
