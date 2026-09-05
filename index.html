@@ -156,37 +156,48 @@
 
             <!-- 標題與教室名稱區域 (居中顯示) -->
             <div class="text-center border-b pb-4 mb-4 pr-6 pl-6">
-                <!-- 物品名稱 (較大字體) -->
+                <!-- 物品名稱 -->
                 <h2 id="modalGameName" class="text-2xl font-extrabold text-slate-800 mb-1.5">--</h2>
-                <!-- 桌遊 / 牌卡 示意圖：加括號且比標題稍小 (text-lg) -->
-                <p id="boardgameLocationSubtitle" class="text-lg font-bold text-indigo-600">(6F 潛能教室)</p>
-                <!-- 圖書 示意圖：加括號且比標題稍小 (text-lg) -->
+                <!-- 地點 1：潛能教室 -->
+                <p id="boardgameLocationSubtitle" class="text-lg font-bold text-indigo-600 hidden">(6F 潛能教室)</p>
+                <!-- 地點 2：資藝教室 -->
                 <p id="bookLocationSubtitle" class="text-lg font-bold text-amber-600 hidden">(6F 資藝教室)</p>
+                <!-- 地點 3：wei 的座位後方 -->
+                <p id="weiLocationSubtitle" class="text-lg font-bold text-emerald-600 hidden">(wei 的座位後方)</p>
             </div>
 
-            <!-- 桌遊示意圖 -->
-            <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold">
+            <!-- 示意圖 1：6F 潛能教室 (A1, A2, B1, B2) -->
+            <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold hidden">
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
                 <div class="col-span-2 grid grid-rows-2 gap-1 h-32">
                     <div class="grid grid-cols-2 gap-1">
-                        <div id="loc-A1" class="bg-white flex flex-col items-center justify-center rounded">A1</div>
-                        <div id="loc-B1" class="bg-white flex flex-col items-center justify-center rounded">B1</div>
+                        <div id="loc-A1" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">A1</div>
+                        <div id="loc-B1" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">B1</div>
                     </div>
                     <div class="grid grid-cols-2 gap-1">
-                        <div id="loc-A2" class="bg-white flex flex-col items-center justify-center rounded">A2</div>
-                        <div id="loc-B2" class="bg-white flex flex-col items-center justify-center rounded">B2</div>
+                        <div id="loc-A2" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">A2</div>
+                        <div id="loc-B2" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">B2</div>
                     </div>
                 </div>
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
             </div>
 
-            <!-- 圖書示意圖 -->
+            <!-- 示意圖 2：6F 資藝教室 (上層, 下層) -->
             <div id="bookMap" class="border-4 border-slate-800 bg-slate-200 p-2 rounded-lg space-y-2 hidden">
                 <div id="loc-上層" class="h-20 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">
                     上層
                 </div>
                 <div id="loc-下層" class="h-20 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">
                     下層
+                </div>
+            </div>
+
+            <!-- 示意圖 3：wei 的座位後方 (帶箱子圖示) -->
+            <div id="weiMap" class="border-4 border-slate-800 bg-slate-100 p-6 rounded-lg hidden">
+                <div class="bg-amber-400 border-2 border-amber-600 rounded-xl p-6 text-center text-amber-950 font-bold shadow-inner flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-box-archive text-5xl mb-2 text-amber-900"></i>
+                    <span class="text-base">wei 的座位後方收納箱</span>
+                    <span class="text-xs bg-amber-700 text-white px-2 py-0.5 rounded mt-2">放置於此</span>
                 </div>
             </div>
 
@@ -694,13 +705,24 @@
 
             const bgMap = document.getElementById('boardgameMap');
             const bookMap = document.getElementById('bookMap');
+            const weiMap = document.getElementById('weiMap');
+
             const bgSub = document.getElementById('boardgameLocationSubtitle');
             const bookSub = document.getElementById('bookLocationSubtitle');
+            const weiSub = document.getElementById('weiLocationSubtitle');
 
-            if (isBook) {
-                bgMap.classList.add('hidden');
-                bgSub.classList.add('hidden');
-                
+            // 先隱藏所有示意圖與副標題
+            [bgMap, bookMap, weiMap, bgSub, bookSub, weiSub].forEach(el => el.classList.add('hidden'));
+
+            const rawLoc = String(location || '').toUpperCase();
+
+            // 判斷是否為第三個獨立位置：wei 的座位後方
+            if (rawLoc.includes('WEI') || rawLoc.includes('座位') || rawLoc.includes('後方')) {
+                weiMap.classList.remove('hidden');
+                weiSub.classList.remove('hidden');
+            } 
+            // 判斷是否為圖書 (6F 資藝教室)
+            else if (isBook) {
                 bookMap.classList.remove('hidden');
                 bookSub.classList.remove('hidden');
 
@@ -714,21 +736,19 @@
                         el.innerHTML = loc;
                     }
                 });
-            } else {
-                bookMap.classList.add('hidden');
-                bookSub.classList.add('hidden');
-
+            } 
+            // 預設為桌遊/牌卡 (6F 潛能教室)
+            else {
                 bgMap.classList.remove('hidden');
                 bgSub.classList.remove('hidden');
 
-                const rawLoc = String(location || '').toUpperCase();
                 ['A1', 'A2', 'B1', 'B2'].forEach(loc => {
                     const el = document.getElementById(`loc-${loc}`);
                     if (rawLoc.includes(loc)) {
                         el.className = "bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs";
                         el.innerHTML = `${loc}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span>`;
                     } else {
-                        el.className = "bg-white text-slate-700 flex items-center justify-center rounded";
+                        el.className = "bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300";
                         el.innerHTML = loc;
                     }
                 });
