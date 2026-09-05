@@ -154,7 +154,10 @@
             <div class="flex items-center justify-between border-b pb-3 mb-4">
                 <div>
                     <h2 id="modalGameName" class="text-xl font-bold text-slate-800">--</h2>
-                    <p class="text-xs text-slate-500">試算表登記位置：<span id="modalGameLocation" class="font-bold text-indigo-600">--</span></p>
+                    <!-- 桌遊 / 牌卡 示意圖顯示：固定顯示 6F 潛能教室 -->
+                    <p id="boardgameLocationSubtitle" class="text-xs text-slate-500 font-bold text-indigo-600">6F 潛能教室</p>
+                    <!-- 圖書 示意圖顯示：固定顯示 6F 資藝教室 -->
+                    <p id="bookLocationSubtitle" class="text-xs text-slate-500 font-bold text-amber-600 hidden">6F 資藝教室</p>
                 </div>
                 <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
             </div>
@@ -684,14 +687,18 @@
 
         function openMapModal(name, location, isBook) {
             document.getElementById('modalGameName').textContent = name;
-            document.getElementById('modalGameLocation').textContent = location || '未標示';
 
             const bgMap = document.getElementById('boardgameMap');
             const bookMap = document.getElementById('bookMap');
+            const bgSub = document.getElementById('boardgameLocationSubtitle');
+            const bookSub = document.getElementById('bookLocationSubtitle');
 
             if (isBook) {
                 bgMap.classList.add('hidden');
+                bgSub.classList.add('hidden');
+                
                 bookMap.classList.remove('hidden');
+                bookSub.classList.remove('hidden');
 
                 ['上層', '下層'].forEach(loc => {
                     const el = document.getElementById(`loc-${loc}`);
@@ -705,7 +712,10 @@
                 });
             } else {
                 bookMap.classList.add('hidden');
+                bookSub.classList.add('hidden');
+
                 bgMap.classList.remove('hidden');
+                bgSub.classList.remove('hidden');
 
                 const rawLoc = String(location || '').toUpperCase();
                 ['A1', 'A2', 'B1', 'B2'].forEach(loc => {
@@ -722,7 +732,6 @@
 
             document.getElementById('mapModal').classList.remove('hidden');
         }
-
         function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
         function openAddModal() { 
             renderCategoryButtons(); 
