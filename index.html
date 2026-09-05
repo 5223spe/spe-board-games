@@ -151,17 +151,19 @@
     <!-- 1. 櫃位示意圖 Modal -->
     <div id="mapModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative">
-            <div class="flex items-center justify-between border-b pb-3 mb-4">
-                <div>
-                    <h2 id="modalGameName" class="text-xl font-bold text-slate-800">--</h2>
-                    <!-- 桌遊 / 牌卡 示意圖顯示：固定顯示 6F 潛能教室 -->
-                    <p id="boardgameLocationSubtitle" class="text-xs text-slate-500 font-bold text-indigo-600">6F 潛能教室</p>
-                    <!-- 圖書 示意圖顯示：固定顯示 6F 資藝教室 -->
-                    <p id="bookLocationSubtitle" class="text-xs text-slate-500 font-bold text-amber-600 hidden">6F 資藝教室</p>
-                </div>
-                <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
+            <!-- 右上角關閉按鈕 -->
+            <button onclick="closeMapModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold z-10">&times;</button>
+
+            <!-- 標題與教室名稱區域 (居中顯示) -->
+            <div class="text-center border-b pb-4 mb-4 pr-6 pl-6">
+                <h2 id="modalGameName" class="text-xl font-bold text-slate-800 mb-1">--</h2>
+                <!-- 桌遊 / 牌卡 示意圖：居中加大顯示 6F 潛能教室 -->
+                <p id="boardgameLocationSubtitle" class="text-xl font-extrabold text-indigo-600">6F 潛能教室</p>
+                <!-- 圖書 示意圖：居中加大顯示 6F 資藝教室 -->
+                <p id="bookLocationSubtitle" class="text-xl font-extrabold text-amber-600 hidden">6F 資藝教室</p>
             </div>
 
+            <!-- 桌遊示意圖 -->
             <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold">
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
                 <div class="col-span-2 grid grid-rows-2 gap-1 h-32">
@@ -177,6 +179,7 @@
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
             </div>
 
+            <!-- 圖書示意圖 -->
             <div id="bookMap" class="border-4 border-slate-800 bg-slate-200 p-2 rounded-lg space-y-2 hidden">
                 <div id="loc-上層" class="h-20 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">
                     上層
