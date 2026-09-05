@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>鳳新特教 桌遊、牌卡與圖書檢索系統</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- 引入芫荽 (Iansui) 字型 CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/iansui@5.0.1/index.css">
 
     <style>
@@ -67,6 +70,7 @@
 <body class="text-slate-800 p-4 sm:p-6">
 
     <div class="max-w-6xl mx-auto">
+        <!-- Header -->
         <header class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b pb-4">
             <div>
                 <h1 class="text-2xl font-bold flex items-center gap-2">
@@ -88,6 +92,7 @@
             </div>
         </header>
 
+        <!-- 主類別 Tab 分頁 -->
         <div class="flex border-b border-slate-200 mb-6 gap-2">
             <button id="tab-all" onclick="switchMainTab('all')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all">
                 <i class="fa-solid fa-border-all"></i> 全部顯示
@@ -100,12 +105,15 @@
             </button>
         </div>
 
+        <!-- Search & Category Filter Section -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm space-y-4">
+            <!-- 搜尋框 -->
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
                 <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋名稱、作者、位置（如：A1、上層）或備註..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm transition-all">
             </div>
 
+            <!-- 動態分類按鈕區 -->
             <div>
                 <div id="bgCatWrapper" class="mb-3">
                     <span class="text-xs font-bold text-slate-400 block mb-2">桌遊類別</span>
@@ -124,6 +132,7 @@
             </div>
         </div>
 
+        <!-- 結果計數與 Data Grid -->
         <div class="mb-4 text-xs font-bold text-slate-500">
             共找到 <span id="itemCount" class="text-indigo-600 font-extrabold text-sm">0</span> 項目
         </div>
@@ -136,19 +145,21 @@
         <div id="gamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
+    <!-- 列印專用隱藏區域 -->
     <div id="printSection" class="hidden"></div>
 
+    <!-- 1. 櫃位示意圖 Modal -->
     <div id="mapModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
                 <div>
                     <h2 id="modalGameName" class="text-xl font-bold text-slate-800">--</h2>
-                    <p class="text-xs text-slate-500">位置：<span id="modalGameLocation" class="font-bold text-indigo-600">--</span></p>
+                    <p class="text-xs text-slate-500">試算表登記位置：<span id="modalGameLocation" class="font-bold text-indigo-600">--</span></p>
                 </div>
-                <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">×</button>
+                <button onclick="closeMapModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
             </div>
 
-            <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold hidden">
+            <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-lg grid grid-cols-4 gap-1 text-center font-bold">
                 <div class="bg-slate-300 h-32 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
                 <div class="col-span-2 grid grid-rows-2 gap-1 h-32">
                     <div class="grid grid-cols-2 gap-1">
@@ -172,33 +183,18 @@
                 </div>
             </div>
 
-            <div id="weiMap" class="border-4 border-slate-800 bg-slate-100 p-4 rounded-lg flex flex-col items-center justify-center relative min-h-[220px] hidden">
-                <div class="w-full max-w-[240px] border-2 border-slate-300 rounded-lg p-3 bg-white flex flex-col items-center gap-3">
-                    <div class="w-full bg-amber-100 border-2 border-dashed border-amber-400 rounded-lg p-3 flex flex-col items-center justify-center text-amber-800 shadow-sm">
-                        <div class="flex items-center gap-2 text-amber-600 text-2xl mb-1">
-                            <i class="fa-solid fa-boxes-stacked"></i>
-                            <i class="fa-solid fa-box-open"></i>
-                        </div>
-                        <span class="text-xs font-bold">存放於此 (座位後方)</span>
-                    </div>
-                    <i class="fa-solid fa-arrow-down text-slate-400 text-xs"></i>
-                    <div class="w-full bg-indigo-50 border-2 border-indigo-200 rounded-lg p-2 text-center text-indigo-900 font-bold text-sm">
-                        <i class="fa-solid fa-chair text-indigo-500 mr-1"></i> Wei 老師座位
-                    </div>
-                </div>
-            </div>
-
             <div class="mt-5 text-center">
                 <button onclick="closeMapModal()" class="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm hover:bg-slate-700">關閉示意圖</button>
             </div>
         </div>
     </div>
 
+    <!-- 2. 新增 Modal (支援選單+可自行打字) -->
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
                 <h2 class="text-xl font-bold text-slate-800">新增資料</h2>
-                <button onclick="closeAddModal()" class="text-slate-400 text-xl">×</button>
+                <button onclick="closeAddModal()" class="text-slate-400 text-xl">&times;</button>
             </div>
             
             <form onsubmit="submitNewGame(event)" class="space-y-3">
@@ -232,12 +228,14 @@
                         </div>
                     </div>
 
+                    <!-- 桌遊類別 (支援下拉選單 + 打字) -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">桌遊類別 (點選或輸入)</label>
                         <input type="text" id="addBgCats" list="listBgCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
                         <datalist id="listBgCats"></datalist>
                     </div>
 
+                    <!-- 牌卡類別 (支援下拉選單 + 打字) -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">牌卡類別 (點選或輸入)</label>
                         <input type="text" id="addCardCats" list="listCardCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
@@ -251,6 +249,7 @@
                         <input type="text" id="addAuthor" placeholder="例：被討厭的勇氣作者" class="w-full p-2 border rounded-lg text-sm">
                     </div>
 
+                    <!-- 圖書類別 (支援下拉選單 + 打字) -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">圖書類別 (點選或輸入)</label>
                         <input type="text" id="addBookCats" list="listBookCats" placeholder="選擇或自行輸入類別..." class="w-full p-2 border rounded-lg text-sm">
@@ -260,7 +259,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">圖片網址 (可留空)</label>
-                    <input type="url" id="addImageUrl" placeholder="https://script.google.com/macros/s/AKfycby-G0vv3TW8-aa2GHb7qZIwo3cFylPzWpe-flvZnEAPTAhBRMuPc2El75qt2AjG85Y-0g/exec" class="w-full p-2 border rounded-lg text-sm">
+                    <input type="url" id="addImageUrl" placeholder="https://..." class="w-full p-2 border rounded-lg text-sm">
                 </div>
 
                 <div>
@@ -276,11 +275,12 @@
         </div>
     </div>
 
+    <!-- 3. 列印選項 Modal -->
     <div id="printModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
                 <h2 class="text-xl font-bold text-slate-800">列印清單設定</h2>
-                <button onclick="closePrintModal()" class="text-slate-400 text-xl">×</button>
+                <button onclick="closePrintModal()" class="text-slate-400 text-xl">&times;</button>
             </div>
             
             <div class="space-y-4">
@@ -305,4 +305,482 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closePrintModal()" class="px-4 py-2 border rounded-lg text-sm">取消
+                    <button type="button" onclick="closePrintModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button>
+                    <button type="button" onclick="executePrint()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">產生並列印</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 回到頂部懸浮按鈕 -->
+    <button id="backToTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 right-6 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all opacity-0 pointer-events-none z-40">
+        <i class="fa-solid fa-arrow-up text-lg w-5 h-5 flex items-center justify-center"></i>
+    </button>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwFIglSmazVioqlxXePaJyyIgjhLIBg0YlwHR0nk0eFDHcuF73BtEiBGPzjdbqiemwJFA/exec';
+        let allGames = [];
+        let currentTab = 'all';
+        let selectedBoardgameCategory = '全部類別';
+        let selectedCardCategory = '全部類別';
+        let selectedBookCategory = '全部類別';
+
+        const DEFAULT_BG_CATS = ['派對遊戲', '陣營心理', '策略思考', '言語遊戲', '卡牌遊戲', '破冰歡樂', '合作解謎'];
+        const DEFAULT_CARD_CATS = ['情緒表達', '自我探索', '人際溝通', '家庭關係', '職涯探索', '價值觀引導'];
+        const DEFAULT_BOOK_CATS = ['翻譯文學', '心理諮商', '兩性', '家庭', '情緒', '人格潛能', '運動', '教養', '升學工作', '特教', '教育', '小說', '散文', '華文現代詩', '心靈成長', '繪本-自我認同', '繪本-生命教育', '繪本-親情/友誼', '繪本-心靈成長', '繪本-生活教育', '繪本-翻譯圖文', '繪本-其他'];
+
+        const parseTags = (val) => {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            return String(val).split(/[,/、]/).map(s => s.trim()).filter(Boolean);
+        };
+
+        // 自動將 Google Drive 分享連結轉換為 Google 高速圖片 CDN 網址
+        function fixGoogleDriveUrl(url) {
+            if (!url) return '';
+            
+            if (url.includes('drive.google.com')) {
+                let fileId = '';
+                const idMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (idMatch && idMatch[1]) {
+                    fileId = idMatch[1];
+                    return `https://lh3.googleusercontent.com/d/${fileId}`;
+                }
+            }
+            return url;
+        }
+
+        // 將文字中的 HTTP/HTTPS 網址轉成可點擊的超連結
+        function formatNotesWithLinks(text) {
+            if (!text) return '';
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlPattern, function(url) {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="text-blue-600 hover:text-blue-800 underline break-all">${url}</a>`;
+            });
+        }
+
+        async function loadData() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('gamesGrid').innerHTML = '';
+            document.getElementById('refreshIcon').classList.add('fa-spin');
+
+            try {
+                const res = await fetch(API_URL);
+                allGames = await res.json();
+                
+                renderCategoryButtons();
+                filterGames();
+            } catch (err) {
+                console.error('Data Error:', err);
+                alert('資料載入失敗！');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('refreshIcon').classList.remove('fa-spin');
+            }
+        }
+
+        function switchMainTab(tab) {
+            currentTab = tab;
+            const tabs = ['all', 'game', 'book'];
+            
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all";
+                } else {
+                    btn.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-all";
+                }
+            });
+
+            document.getElementById('bgCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
+            document.getElementById('cardCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
+            document.getElementById('bookCatWrapper').style.display = (tab === 'all' || tab === 'book') ? 'block' : 'none';
+
+            filterGames();
+        }
+
+        function renderCategoryButtons() {
+            const dynamicBgCats = new Set(DEFAULT_BG_CATS);
+            const dynamicCardCats = new Set(DEFAULT_CARD_CATS);
+            const dynamicBookCats = new Set(DEFAULT_BOOK_CATS);
+
+            // 從試算表資料中搜集現有的所有類別（含新增的自訂類別）
+            allGames.forEach(g => {
+                parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
+                parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
+                parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
+            });
+
+            // 1. 渲染頂部過濾按鈕
+            document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
+                const active = selectedBoardgameCategory === cat;
+                return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+            }).join('');
+
+            document.getElementById('cardCategoryButtons').innerHTML = ['全部類別', ...dynamicCardCats].map(cat => {
+                const active = selectedCardCategory === cat;
+                return `<button onclick="selectCat('card', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+            }).join('');
+
+            document.getElementById('bookCategoryButtons').innerHTML = ['全部類別', ...dynamicBookCats].map(cat => {
+                const active = selectedBookCategory === cat;
+                return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+            }).join('');
+
+            // 2. 動態更新「新增資料」彈出視窗的選單選項（自動學習）
+            document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
+            document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
+            document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
+        }
+
+        function selectCat(type, cat) {
+            if (type === 'bg') selectedBoardgameCategory = cat;
+            if (type === 'card') selectedCardCategory = cat;
+            if (type === 'book') selectedBookCategory = cat;
+            renderCategoryButtons();
+            filterGames();
+        }
+
+        function filterGames() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            const filtered = allGames.filter(g => {
+                const isBook = g.type === 'book' || (g.location || '').includes('層');
+
+                if (currentTab === 'game' && isBook) return false;
+                if (currentTab === 'book' && !isBook) return false;
+
+                const name = (g.name || '').toLowerCase();
+                const author = (g.author || '').toLowerCase();
+                const loc = (g.location || '').toLowerCase();
+                const notes = (g.notes || '').toLowerCase();
+
+                const bgTags = parseTags(g.boardgameCategories);
+                const cardTags = parseTags(g.cardCategories);
+                const bookTags = parseTags(g.bookCategories);
+
+                const matchQuery = !query || name.includes(query) || author.includes(query) || loc.includes(query) || notes.includes(query);
+                const matchBgCat = selectedBoardgameCategory === '全部類別' || bgTags.includes(selectedBoardgameCategory);
+                const matchCardCat = selectedCardCategory === '全部類別' || cardTags.includes(selectedCardCategory);
+                const matchBookCat = selectedBookCategory === '全部類別' || bookTags.includes(selectedBookCategory);
+
+                return matchQuery && matchBgCat && matchCardCat && matchBookCat;
+            });
+
+            document.getElementById('itemCount').textContent = filtered.length;
+            renderCards(filtered);
+        }
+
+        function renderCards(games) {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+
+            games.forEach(game => {
+                const name = game.name || '未命名項目';
+                const author = game.author || '';
+                const location = game.location || '未標示';
+                const players = game.players || '';
+                const duration = game.duration || '';
+                const notes = game.notes || '';
+                
+                // 取得欄位網址並自動透過 CDN 轉址機制優化
+                const rawImageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
+                const imageUrl = fixGoogleDriveUrl(rawImageUrl);
+                
+                const isBook = game.itemType === 'book' || game.type === 'book' || location.includes('層');
+
+                const bgTags = parseTags(game.boardgameCategories);
+                const cardTags = parseTags(game.cardCategories);
+                const bookTags = parseTags(game.bookCategories);
+
+                const bgCatHtml = bgTags.length ? `
+                    <div class="mb-2">
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span>
+                        <div class="flex flex-wrap gap-1">${bgTags.map(t => `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
+                    </div>` : '';
+
+                const cardCatHtml = cardTags.length ? `
+                    <div class="mb-2">
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span>
+                        <div class="flex flex-wrap gap-1">${cardTags.map(t => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
+                    </div>` : '';
+
+                const bookCatHtml = bookTags.length ? `
+                    <div class="mb-2">
+                        <span class="text-[11px] font-semibold text-slate-400 block mb-1">圖書類別</span>
+                        <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
+                    </div>` : '';
+
+                const imageArea = imageUrl ? 
+                    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-contain bg-slate-100 p-2" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400\\'><i class=\\'fa-solid fa-image-slash text-3xl mb-1 text-slate-300\\'></i><span class=\\'text-xs font-medium\\'>圖片載入失敗 (請確認權限)</span></div>';">` : 
+                    `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
+                        <span class="text-xs font-medium">無提供照片</span>
+                     </div>`;
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="relative">
+                            ${imageArea}
+                            <span class="absolute top-3 right-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-amber-800 border border-amber-200 rounded-md text-xs font-bold shadow-sm">
+                                <i class="fa-solid fa-location-dot text-amber-600"></i> ${location}
+                            </span>
+                        </div>
+
+                        <div class="p-5">
+                            <h3 class="font-bold text-slate-900 text-lg mb-1">${name}</h3>
+                            ${author ? `<p class="text-xs font-medium text-slate-500 mb-3"><i class="fa-solid fa-user-pen text-slate-400 mr-1"></i>${author}</p>` : ''}
+
+                            ${(players || duration) ? `
+                            <div class="flex items-center gap-3 text-xs text-slate-500 mb-3 pb-2 border-b border-slate-100">
+                                ${players ? `<span><i class="fa-solid fa-users"></i> ${players}</span>` : ''}
+                                ${duration ? `<span><i class="fa-solid fa-clock"></i> ${duration}</span>` : ''}
+                            </div>` : ''}
+
+                            ${bgCatHtml}
+                            ${cardCatHtml}
+                            ${bookCatHtml}
+                        </div>
+                    </div>
+                    ${notes ? `<div class="px-5 py-2.5 bg-slate-50 border-t text-xs text-slate-500 break-all">${formatNotesWithLinks(notes)}</div>` : ''}
+                `;
+
+                card.onclick = () => openMapModal(name, location, isBook);
+                grid.appendChild(card);
+            });
+        }
+
+        /* ----- 列印功能相關邏輯 ----- */
+        function openPrintModal() { document.getElementById('printModal').classList.remove('hidden'); }
+        function closePrintModal() { document.getElementById('printModal').classList.add('hidden'); }
+
+        function generateBookCategoryHtml(items) {
+            const catMap = {};
+            items.forEach(item => {
+                const cats = parseTags(item.bookCategories);
+                const primaryCat = cats.length > 0 ? cats[0] : '其他/未分類';
+                if (!catMap[primaryCat]) catMap[primaryCat] = [];
+                catMap[primaryCat].push(item);
+            });
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">類別</th>
+                        <th style="width: 75%;">圖書名稱</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            const catNames = Object.keys(catMap);
+            if (catNames.length === 0) {
+                html += `<tr><td colspan="2" style="text-align: center; color: #888;">(尚無資料)</td></tr>`;
+            } else {
+                catNames.forEach(catName => {
+                    const list = catMap[catName];
+                    list.forEach((book, idx) => {
+                        html += `<tr>`;
+                        if (idx === 0) {
+                            html += `<td rowspan="${list.length}" class="cat-cell">${catName}</td>`;
+                        }
+                        html += `<td style="font-weight: 500;">${book.name || ''}</td></tr>`;
+                    });
+                });
+            }
+
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        function generateStandardTwoColumnHtml(items, titleName) {
+            const mid = Math.ceil(items.length / 2);
+            const leftList = items.slice(0, mid);
+            const rightList = items.slice(mid);
+            const rowCount = Math.max(leftList.length, rightList.length);
+
+            let tableRows = '';
+            for (let i = 0; i < rowCount; i++) {
+                const leftName = leftList[i] ? leftList[i].name : '';
+                const rightName = rightList[i] ? rightList[i].name : '';
+                tableRows += `
+                    <tr>
+                        <td style="width: 50%; font-weight: 500;">${leftName}</td>
+                        <td style="width: 50%; font-weight: 500;">${rightName}</td>
+                    </tr>
+                `;
+            }
+
+            if (rowCount === 0) {
+                tableRows = `<tr><td style="width: 50%; text-align: center; color: #888;">(尚無資料)</td><td style="width: 50%;"></td></tr>`;
+            }
+
+            return `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>${titleName}</th>
+                            <th>${titleName}</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+            `;
+        }
+
+        function executePrint() {
+            const targetLoc = document.getElementById('printLocSelect').value;
+            const printSec = document.getElementById('printSection');
+            printSec.innerHTML = '';
+
+            const locations = (targetLoc === 'ALL') ? ['A1', 'A2', 'B1', 'B2', '上層', '下層'] : [targetLoc];
+
+            locations.forEach((loc, idx) => {
+                const items = allGames.filter(g => (g.location || '').toUpperCase().includes(loc));
+                if (items.length === 0 && targetLoc !== 'ALL') return;
+
+                const isBook = loc === '上層' || loc === '下層';
+                const typeTitle = isBook ? '圖書列表' : '桌遊與牌卡列表';
+
+                let contentTableHtml = isBook ? generateBookCategoryHtml(items) : generateStandardTwoColumnHtml(items, '桌遊品名');
+
+                const pageDiv = document.createElement('div');
+                pageDiv.className = (idx < locations.length - 1) ? 'print-page-break' : '';
+                pageDiv.innerHTML = `
+                    <div style="margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <h2 style="font-size: 18px; font-weight: bold; margin: 0;">櫃位名稱：[ ${loc} ] ${typeTitle}</h2>
+                        <span style="font-size: 12px; color: #555;">共 ${items.length} 項</span>
+                    </div>
+                    ${contentTableHtml}
+                `;
+                printSec.appendChild(pageDiv);
+            });
+
+            closePrintModal();
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        /* Modal & Form Helpers */
+        function toggleFormFields() {
+            const type = document.getElementById('addItemType').value;
+            const gameFields = document.getElementById('gameFields');
+            const bookFields = document.getElementById('bookFields');
+            const locLabel = document.getElementById('locLabel');
+
+            if (type === 'book') {
+                gameFields.classList.add('hidden');
+                bookFields.classList.remove('hidden');
+                locLabel.textContent = '放置位置 (如: 上層, 下層) *';
+            } else {
+                gameFields.classList.remove('hidden');
+                bookFields.classList.add('hidden');
+                locLabel.textContent = '放置位置 (如: A1, B2) *';
+            }
+        }
+
+        function openMapModal(name, location, isBook) {
+            document.getElementById('modalGameName').textContent = name;
+            document.getElementById('modalGameLocation').textContent = location || '未標示';
+
+            const bgMap = document.getElementById('boardgameMap');
+            const bookMap = document.getElementById('bookMap');
+
+            if (isBook) {
+                bgMap.classList.add('hidden');
+                bookMap.classList.remove('hidden');
+
+                ['上層', '下層'].forEach(loc => {
+                    const el = document.getElementById(`loc-${loc}`);
+                    if (location.includes(loc)) {
+                        el.className = "h-20 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner";
+                        el.innerHTML = `${loc} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-1">在這裡!</span>`;
+                    } else {
+                        el.className = "h-20 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500";
+                        el.innerHTML = loc;
+                    }
+                });
+            } else {
+                bookMap.classList.add('hidden');
+                bgMap.classList.remove('hidden');
+
+                const rawLoc = String(location || '').toUpperCase();
+                ['A1', 'A2', 'B1', 'B2'].forEach(loc => {
+                    const el = document.getElementById(`loc-${loc}`);
+                    if (rawLoc.includes(loc)) {
+                        el.className = "bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs";
+                        el.innerHTML = `${loc}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span>`;
+                    } else {
+                        el.className = "bg-white text-slate-700 flex items-center justify-center rounded";
+                        el.innerHTML = loc;
+                    }
+                });
+            }
+
+            document.getElementById('mapModal').classList.remove('hidden');
+        }
+
+        function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
+        function openAddModal() { 
+            renderCategoryButtons(); 
+            document.getElementById('addModal').classList.remove('hidden'); 
+        }
+        function closeAddModal() { document.getElementById('addModal').classList.add('hidden'); }
+
+        async function submitNewGame(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerText = '寫入中...';
+
+            const itemType = document.getElementById('addItemType').value;
+
+            const payload = {
+                itemType: itemType,
+                name: document.getElementById('addName').value,
+                author: document.getElementById('addAuthor').value,
+                location: document.getElementById('addLoc').value,
+                players: document.getElementById('addPlayers').value,
+                duration: document.getElementById('addDuration').value,
+                boardgameCategories: document.getElementById('addBgCats').value,
+                cardCategories: document.getElementById('addCardCats').value,
+                bookCategories: document.getElementById('addBookCats').value,
+                imageUrl: document.getElementById('addImageUrl').value,
+                notes: document.getElementById('addNotes').value
+            };
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                alert('新增成功！');
+                closeAddModal();
+                loadData();
+            } catch (err) {
+                alert('新增失敗！');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '確認新增';
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backToTopBtn');
+            if (window.scrollY > 300) {
+                btn.classList.remove('opacity-0', 'pointer-events-none');
+                btn.classList.add('opacity-100');
+            } else {
+                btn.classList.add('opacity-0', 'pointer-events-none');
+                btn.classList.remove('opacity-100');
+            }
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
