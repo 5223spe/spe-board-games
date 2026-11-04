@@ -400,10 +400,10 @@
     let currentPage = 1;
     const PAGE_SIZE = 24; 
 
-    const DEFAULT_BG_CATS = ['派對遊戲', '陣營心理', '策略思考', '言語遊戲', '卡牌遊戲', '破冰歡樂', '合作解謎'];
-    const DEFAULT_CARD_CATS = ['情緒表達', '自我探索', '人際溝通', '家庭關係', '職涯探索', '價值觀引導'];
-    const DEFAULT_BOOK_CATS = ['翻譯文學', '心理諮商', '兩性', '家庭', '情緒', '人格潛能', '運動', '教養', '升學工作', '特教', '教育', '小說', '散文', '華文現代詩', '心靈成長', '繪本-自我認同', '繪本-生命教育', '繪本-親情/友誼', '繪本-心靈成長', '繪本-生活教育', '繪本-翻譯圖文', '繪本-其他'];
-    const DEFAULT_SWITCH_CATS = ['體感運動', '派對同樂', '動作冒險', '角色扮演', '益智解謎', '合作闖關'];
+    const DEFAULT_BG_CATS = [];
+    const DEFAULT_CARD_CATS = [];
+    const DEFAULT_BOOK_CATS = [];
+    const DEFAULT_SWITCH_CATS = [];
 
     const parseTags = (val) => {
         if (!val) return [];
@@ -483,43 +483,48 @@
     }
 
     function renderCategoryButtons() {
-        const dynamicBgCats = new Set(DEFAULT_BG_CATS);
-        const dynamicCardCats = new Set(DEFAULT_CARD_CATS);
-        const dynamicBookCats = new Set(DEFAULT_BOOK_CATS);
-        const dynamicSwitchCats = new Set(DEFAULT_SWITCH_CATS);
+        const dynamicBgCats = new Set();
+        const dynamicCardCats = new Set();
+        const dynamicBookCats = new Set();
+        const dynamicSwitchCats = new Set();
 
         allGames.forEach(g => {
-            parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
-            parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
-            parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
-            parseTags(g.switchCategories).forEach(t => dynamicSwitchCats.add(t));
-        });
+        parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
+        parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
+        parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
+        parseTags(g.switchCategories).forEach(t => dynamicSwitchCats.add(t));
+    });
 
-        document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
-            const active = selectedBoardgameCategory === cat;
-            return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-        }).join('');
+    // 渲染桌遊類別按鈕
+    document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
+        const active = selectedBoardgameCategory === cat;
+        return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+    }).join('');
 
-        document.getElementById('cardCategoryButtons').innerHTML = ['全部類別', ...dynamicCardCats].map(cat => {
-            const active = selectedCardCategory === cat;
-            return `<button onclick="selectCat('card', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-        }).join('');
+    // 渲染牌卡類別按鈕
+    document.getElementById('cardCategoryButtons').innerHTML = ['全部類別', ...dynamicCardCats].map(cat => {
+        const active = selectedCardCategory === cat;
+        return `<button onclick="selectCat('card', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+    }).join('');
 
-        document.getElementById('bookCategoryButtons').innerHTML = ['全部類別', ...dynamicBookCats].map(cat => {
-            const active = selectedBookCategory === cat;
-            return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-        }).join('');
+    // 渲染圖書類別按鈕
+    document.getElementById('bookCategoryButtons').innerHTML = ['全部類別', ...dynamicBookCats].map(cat => {
+        const active = selectedBookCategory === cat;
+        return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+    }).join('');
 
-        document.getElementById('switchCategoryButtons').innerHTML = ['全部類別', ...dynamicSwitchCats].map(cat => {
-            const active = selectedSwitchCategory === cat;
-            return `<button onclick="selectCat('switch', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-        }).join('');
+    // 渲染 Switch 類別按鈕
+    document.getElementById('switchCategoryButtons').innerHTML = ['全部類別', ...dynamicSwitchCats].map(cat => {
+        const active = selectedSwitchCategory === cat;
+        return `<button onclick="selectCat('switch', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+    }).join('');
 
-        document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
-        document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
-        document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
-        document.getElementById('listSwitchCats').innerHTML = Array.from(dynamicSwitchCats).map(cat => `<option value="${cat}">`).join('');
-    }
+    // 更新新增/編輯 Modal 的下拉選單建議清單 (datalist)
+    document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
+    document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
+    document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
+    document.getElementById('listSwitchCats').innerHTML = Array.from(dynamicSwitchCats).map(cat => `<option value="${cat}">`).join('');
+}
 
     function selectCat(type, cat) {
         if (type === 'bg') selectedBoardgameCategory = cat;
