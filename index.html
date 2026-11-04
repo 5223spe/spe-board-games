@@ -110,16 +110,13 @@
 
         <!-- 主類別 Tab 分頁 -->
         <div class="flex border-b border-slate-200 mb-6 gap-2">
-            <button id="tab-all" onclick="switchMainTab('all')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-indigo-600 text-indigo-600 flex items-center gap-2 transition-all">
-                <i class="fa-solid fa-border-all"></i> 全部顯示
-            </button>
-            <button id="tab-game" onclick="switchMainTab('game')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-all">
-                <i class="fa-solid fa-dice text-blue-500"></i> 桌遊與牌卡
-            </button>
-            <button id="tab-book" onclick="switchMainTab('book')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-all">
-                <i class="fa-solid fa-book text-amber-500"></i> 圖書
-            </button>
-        </div>
+    <button id="tab-all" onclick="switchMainTab('all')" class="...">...</button>
+    <button id="tab-game" onclick="switchMainTab('game')" class="...">...</button>
+    <button id="tab-book" onclick="switchMainTab('book')" class="...">...</button>
+    <button id="tab-switch" onclick="switchMainTab('switch')" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-all">
+        <i class="fa-solid fa-gamepad text-red-500"></i> Nintendo Switch
+    </button>
+</div>
 
         <!-- Search & Category Filter Section -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm space-y-4">
@@ -236,6 +233,7 @@
                         <select id="addItemType" onchange="toggleFormFields()" class="w-full p-2 border rounded-lg text-sm bg-slate-50 font-bold">
                             <option value="game">桌遊 / 牌卡 (Sheet1)</option>
                             <option value="book">圖書 (Sheet2)</option>
+                            <option value="switch">Nintendo Switch (Sheet3)</option>
                         </select>
                     </div>
 
@@ -349,7 +347,7 @@
     </button>
 
     <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx8AdDCpM1n_7JVF-rCSx1UMf7P5XfLg_tqg0-PjPjgUleD8qDzqy_a8x7SErUlAOO4_w/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbweK4AzTC0pLNvoyUSssOwQnWwHi8D5sVJhiXSyMc1cGrgDar_fBCT-A3Eg-X6hVQ-a_A/exec';
     let allGames = [];
     let filteredGames = [];
     let currentTab = 'all';
@@ -417,27 +415,25 @@
     function switchMainTab(tab) {
     currentTab = tab;
     
-    // 設定各 Tab 被選取時對應圖示的顏色 CSS Class
     const activeClasses = {
         'all': 'border-indigo-600 text-indigo-600',
-        'game': 'border-blue-600 text-blue-600',  // 寶藍色系 (與骰子同色)
-        'book': 'border-amber-500 text-amber-500' // 琥珀黃色系 (與書本同色)
+        'game': 'border-blue-600 text-blue-600',
+        'book': 'border-amber-500 text-amber-500'
+        'switch': 'border-red-600 text-red-600', // Switch 醒目紅色
     };
     
     const inactiveClass = "border-transparent text-slate-500 hover:text-slate-700";
     const baseClass = "px-5 py-2.5 font-bold text-sm border-b-2 flex items-center gap-2 transition-all";
 
-    ['all', 'game', 'book'].forEach(t => {
+    ['all', 'game', 'switch', 'book'].forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
-        if (t === tab) {
-            btn.className = `${baseClass} ${activeClasses[t]}`;
-        } else {
-            btn.className = `${baseClass} ${inactiveClass}`;
+        if (btn) {
+            btn.className = (t === tab) ? `${baseClass} ${activeClasses[t]}` : `${baseClass} ${inactiveClass}`;
         }
     });
 
-    document.getElementById('bgCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
-    document.getElementById('cardCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
+    document.getElementById('bgCatWrapper').style.display = (tab === 'all' || tab === 'game' || tab === 'switch') ? 'block' : 'none';
+    document.getElementById('cardCatWrapper').style.display = (tab === 'all' || tab === 'game' || tab === 'switch') ? 'block' : 'none';
     document.getElementById('bookCatWrapper').style.display = (tab === 'all' || tab === 'book') ? 'block' : 'none';
 
     filterGames();
@@ -482,40 +478,40 @@
         renderCategoryButtons();
         filterGames();
     }
+function filterGames() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
 
-    function filterGames() {
-        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    filteredGames = allGames.filter(g => {
+        const isBook = g.type === 'book' || (g.location || '').includes('層');
+        const isSwitch = g.type === 'switch';
 
-        filteredGames = allGames.filter(g => {
-            const isBook = g.type === 'book' || (g.location || '').includes('層');
+        // 頁籤過濾邏輯
+        if (currentTab === 'game' && (isBook || isSwitch)) return false;
+        if (currentTab === 'switch' && !isSwitch) return false;
+        if (currentTab === 'book' && !isBook) return false;
 
-            if (currentTab === 'game' && isBook) return false;
-            if (currentTab === 'book' && !isBook) return false;
+        const name = (g.name || '').toLowerCase();
+        const author = (g.author || '').toLowerCase();
+        const loc = (g.location || '').toLowerCase();
+        const notes = (g.notes || '').toLowerCase();
 
-            const name = (g.name || '').toLowerCase();
-            const author = (g.author || '').toLowerCase();
-            const loc = (g.location || '').toLowerCase();
-            const notes = (g.notes || '').toLowerCase();
+        const bgTags = parseTags(g.boardgameCategories);
+        const cardTags = parseTags(g.cardCategories);
+        const bookTags = parseTags(g.bookCategories);
 
-            const bgTags = parseTags(g.boardgameCategories);
-            const cardTags = parseTags(g.cardCategories);
-            const bookTags = parseTags(g.bookCategories);
+        const matchQuery = !query || name.includes(query) || author.includes(query) || loc.includes(query) || notes.includes(query);
+        const matchBgCat = selectedBoardgameCategory === '全部類別' || bgTags.includes(selectedBoardgameCategory);
+        const matchCardCat = selectedCardCategory === '全部類別' || cardTags.includes(selectedCardCategory);
+        const matchBookCat = selectedBookCategory === '全部類別' || bookTags.includes(selectedBookCategory);
 
-            const matchQuery = !query || name.includes(query) || author.includes(query) || loc.includes(query) || notes.includes(query);
-            const matchBgCat = selectedBoardgameCategory === '全部類別' || bgTags.includes(selectedBoardgameCategory);
-            const matchCardCat = selectedCardCategory === '全部類別' || cardTags.includes(selectedCardCategory);
-            const matchBookCat = selectedBookCategory === '全部類別' || bookTags.includes(selectedBookCategory);
+        return matchQuery && matchBgCat && matchCardCat && matchBookCat;
+    });
 
-            return matchQuery && matchBgCat && matchCardCat && matchBookCat;
-        });
-
-        document.getElementById('itemCount').textContent = filteredGames.length;
-        
-        // 重設頁碼，重新渲染第一頁
-        currentPage = 1;
-        document.getElementById('gamesGrid').innerHTML = '';
-        renderNextBatch();
-    }
+    document.getElementById('itemCount').textContent = filteredGames.length;
+    currentPage = 1;
+    document.getElementById('gamesGrid').innerHTML = '';
+    renderNextBatch();
+}
 
     function renderNextBatch() {
         const start = (currentPage - 1) * PAGE_SIZE;
@@ -542,36 +538,24 @@
             const rawImageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
             const imageUrl = fixGoogleDriveUrl(rawImageUrl);
             
-            const isBook = game.type === 'book' || location.includes('層');
+            // ✅ 修改後的程式碼
+const isBook = game.type === 'book' || location.includes('層');
+const isSwitch = game.type === 'switch';
 
-            const bgTags = parseTags(game.boardgameCategories);
-            const cardTags = parseTags(game.cardCategories);
-            const bookTags = parseTags(game.bookCategories);
+// 依據類型決定無圖片時顯示的預設圖示與顏色
+let defaultIcon = 'fa-box-archive text-slate-300';
+if (isSwitch) {
+    defaultIcon = 'fa-gamepad text-red-400';
+} else if (isBook) {
+    defaultIcon = 'fa-book text-amber-400';
+}
 
-            const bgCatHtml = bgTags.length ? `
-    <div class="mb-2">
-        <span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span>
-        <div class="flex flex-wrap gap-1">${bgTags.map(t => `<span class="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-    </div>` : '';
-
-            const cardCatHtml = cardTags.length ? `
-                <div class="mb-2">
-                    <span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span>
-                    <div class="flex flex-wrap gap-1">${cardTags.map(t => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-                </div>` : '';
-
-            const bookCatHtml = bookTags.length ? `
-                <div class="mb-2">
-                    <span class="text-[11px] font-semibold text-slate-400 block mb-1">圖書類別</span>
-                    <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-                </div>` : '';
-
-            const imageArea = imageUrl ? 
-                `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-contain bg-slate-100 p-2" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400\\'><i class=\\'fa-solid fa-image-slash text-3xl mb-1 text-slate-300\\'></i><span class=\\'text-xs font-medium\\'>圖片載入失敗</span></div>';">` : 
-                `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
-                    <i class="fa-solid ${isBook ? 'fa-book' : 'fa-box-archive'} text-3xl mb-1 text-slate-300"></i>
-                    <span class="text-xs font-medium">無提供照片</span>
-                 </div>`;
+const imageArea = imageUrl ? 
+    `<img src="${imageUrl}" alt="${name}" class="w-full h-44 object-contain bg-slate-100 p-2" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400\\'><i class=\\'fa-solid ${defaultIcon} text-3xl mb-1\\'></i><span class=\\'text-xs font-medium\\'>圖片載入失敗</span></div>';">` : 
+    `<div class="w-full h-44 bg-slate-100 flex flex-col items-center justify-center text-slate-400">
+        <i class="fa-solid ${defaultIcon} text-3xl mb-1"></i>
+        <span class="text-xs font-medium">無提供照片</span>
+     </div>`;
 
             const card = document.createElement('div');
             card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between group";
@@ -721,22 +705,31 @@
 
     /* Modal & Form Helpers */
     function toggleFormFields() {
-        const type = document.getElementById('addItemType').value;
-        const gameFields = document.getElementById('gameFields');
-        const bookFields = document.getElementById('bookFields');
-        const locLabel = document.getElementById('locLabel');
+    const type = document.getElementById('addItemType').value;
+    const gameFields = document.getElementById('gameFields');
+    const bookFields = document.getElementById('bookFields');
+    const locLabel = document.getElementById('locLabel');
+    
+    // 取得牌卡類別的輸入容器（若在 Switch 時不需要顯示牌卡類別）
+    const cardCatInput = document.getElementById('addCardCats')?.parentElement;
 
-        if (type === 'book') {
-            gameFields.classList.add('hidden');
-            bookFields.classList.remove('hidden');
-            locLabel.textContent = '放置位置 (如: 上層, 下層) *';
-        } else {
-            gameFields.classList.remove('hidden');
-            bookFields.classList.add('hidden');
-            locLabel.textContent = '放置位置 (如: A1, B2) *';
-        }
+    if (type === 'book') {
+        gameFields.classList.add('hidden');
+        bookFields.classList.remove('hidden');
+        locLabel.textContent = '放置位置 (如: 上層, 下層) *';
+    } else if (type === 'switch') {
+        gameFields.classList.remove('hidden');
+        bookFields.classList.add('hidden');
+        locLabel.textContent = '放置位置 *';
+        // 隱藏牌卡類別，只留單一類別欄位
+        if (cardCatInput) cardCatInput.style.display = 'none';
+    } else { // game
+        gameFields.classList.remove('hidden');
+        bookFields.classList.add('hidden');
+        locLabel.textContent = '放置位置 (如: A1, B2) *';
+        if (cardCatInput) cardCatInput.style.display = 'block';
     }
-
+}
     function openMapModal(game) {
         currentActiveItem = game;
 
