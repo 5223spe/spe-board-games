@@ -824,36 +824,37 @@
     }
 
     function openMapModal(game) {
-        currentActiveItem = game;
+    currentActiveItem = game;
 
-        const name = game.name || '未命名項目';
-        const location = game.location || '未標示';
-        const isBook = game.type === 'book';
+    const name = game.name || '未命名項目';
+    const location = game.location || '未標示';
+    const isBook = game.type === 'book';
 
-        document.getElementById('modalGameName').textContent = name;
+    document.getElementById('modalGameName').textContent = name;
 
-        const bgMap = document.getElementById('boardgameMap');
-        const bookMap = document.getElementById('bookMap');
-        const weiMap = document.getElementById('weiMap');
+    const bgMap = document.getElementById('boardgameMap');
+    const bookMap = document.getElementById('bookMap');
+    const weiMap = document.getElementById('weiMap');
 
-        const bgSub = document.getElementById('boardgameLocationSubtitle');
-        const bookSub = document.getElementById('bookLocationSubtitle');
-        const weiSub = document.getElementById('weiLocationSubtitle');
+    const bgSub = document.getElementById('boardgameLocationSubtitle');
+    const bookSub = document.getElementById('bookLocationSubtitle');
+    const weiSub = document.getElementById('weiLocationSubtitle');
 
-        [bgMap, bookMap, weiMap, bgSub, bookSub, weiSub].forEach(el => el.classList.add('hidden'));
+    [bgMap, bookMap, weiMap, bgSub, bookSub, weiSub].forEach(el => el.classList.add('hidden'));
 
-        const rawLoc = String(location || '').toUpperCase();
+    const rawLoc = String(location || '').toUpperCase();
 
-        if (rawLoc.includes('WEI') || rawLoc.includes('座位') || rawLoc.includes('後方')) {
-            weiMap.classList.remove('hidden');
-            weiSub.classList.remove('hidden');
-        } 
-        else if (isBook) {
-            bookMap.classList.remove('hidden');
-            bookSub.classList.remove('hidden');
+    if (rawLoc.includes('WEI') || rawLoc.includes('座位') || rawLoc.includes('後方')) {
+        weiMap.classList.remove('hidden');
+        weiSub.classList.remove('hidden');
+    } 
+    else if (isBook) {
+        bookMap.classList.remove('hidden');
+        bookSub.classList.remove('hidden');
 
-            ['上層', '下層'].forEach(loc => {
-                const el = document.getElementById(`loc-${loc}`);
+        ['上層', '下層'].forEach(loc => {
+            const el = document.getElementById(`loc-${loc}`);
+            if (el) {
                 if (location.includes(loc)) {
                     el.className = "h-16 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner";
                     el.innerHTML = `${loc} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-0.5">在這裡!</span>`;
@@ -861,46 +862,47 @@
                     el.className = "h-16 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500";
                     el.innerHTML = loc;
                 }
-            });
-        } 
-        else {
-            bgMap.classList.remove('hidden');
-            bgSub.classList.remove('hidden');
+            }
+        });
+    } 
+    else {
+        bgMap.classList.remove('hidden');
+        bgSub.classList.remove('hidden');
 
-            ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].forEach(loc => {
-                const el = document.getElementById(`loc-${loc}`);
-                if (el) {
-                    if (rawLoc.includes(loc)) {
-                        el.className = "bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs";
-                        el.innerHTML = `${loc}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span>`;
-                    } else {
-                        el.className = "bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300";
-                        el.innerHTML = loc;
-                    }
+        ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].forEach(loc => {
+            const el = document.getElementById(`loc-${loc}`);
+            if (el) {
+                if (rawLoc.includes(loc)) {
+                    el.className = "bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs";
+                    el.innerHTML = `${loc}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span>`;
+                } else {
+                    el.className = "bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300";
+                    el.innerHTML = loc;
                 }
-            });
-        }
-
-        const bgTags = parseTags(game.boardgameCategories);
-        const cardTags = parseTags(game.cardCategories);
-        const bookTags = parseTags(game.bookCategories);
-        const switchTags = parseTags(game.switchCategories);
-
-        let detailHtml = `
-            <div><span class="text-slate-400 font-bold">放置位置：</span><span class="font-extrabold text-amber-700">${location}</span></div>
-        `;
-        if (game.author) detailHtml += `<div><span class="text-slate-400 font-bold">作者：</span>${game.author}</div>`;
-        if (game.players) detailHtml += `<div><span class="text-slate-400 font-bold">適合人數：</span>${game.players}</div>`;
-        if (game.duration) detailHtml += `<div><span class="text-slate-400 font-bold">遊玩時間：</span>${game.duration}</div>`;
-        if (bgTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">桌遊類別：</span><div class="flex flex-wrap gap-1">${bgTags.map(t=>`<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-        if (cardTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">牌卡類別：</span><div class="flex flex-wrap gap-1">${cardTags.map(t=>`<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-        if (bookTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">圖書類別：</span><div class="flex flex-wrap gap-1">${bookTags.map(t=>`<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-        if (switchTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">Switch 類別：</span><div class="flex flex-wrap gap-1">${switchTags.map(t=>`<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-        if (game.notes) detailHtml += `<div class="pt-2 border-t border-slate-200"><span class="text-slate-400 font-bold block mb-1">備註 / 說明：</span><div class="text-slate-600 break-all">${formatNotesWithLinks(game.notes)}</div></div>`;
-
-        document.getElementById('modalDetailContent').innerHTML = detailHtml;
-        document.getElementById('mapModal').classList.remove('hidden');
+            }
+        });
     }
+
+    const bgTags = parseTags(game.boardgameCategories);
+    const cardTags = parseTags(game.cardCategories);
+    const bookTags = parseTags(game.bookCategories);
+    const switchTags = parseTags(game.switchCategories);
+
+    let detailHtml = `
+        <div><span class="text-slate-400 font-bold">放置位置：</span><span class="font-extrabold text-amber-700">${location}</span></div>
+    `;
+    if (game.author) detailHtml += `<div><span class="text-slate-400 font-bold">作者：</span>${game.author}</div>`;
+    if (game.players) detailHtml += `<div><span class="text-slate-400 font-bold">適合人數：</span>${game.players}</div>`;
+    if (game.duration) detailHtml += `<div><span class="text-slate-400 font-bold">遊玩時間：</span>${game.duration}</div>`;
+    if (bgTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">桌遊類別：</span><div class="flex flex-wrap gap-1">${bgTags.map(t=>`<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+    if (cardTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">牌卡類別：</span><div class="flex flex-wrap gap-1">${cardTags.map(t=>`<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+    if (bookTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">圖書類別：</span><div class="flex flex-wrap gap-1">${bookTags.map(t=>`<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+    if (switchTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">Switch 類別：</span><div class="flex flex-wrap gap-1">${switchTags.map(t=>`<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+    if (game.notes) detailHtml += `<div class="pt-2 border-t border-slate-200"><span class="text-slate-400 font-bold block mb-1">備註 / 說明：</span><div class="text-slate-600 break-all">${formatNotesWithLinks(game.notes)}</div></div>`;
+
+    document.getElementById('modalDetailContent').innerHTML = detailHtml;
+    document.getElementById('mapModal').classList.remove('hidden');
+}
 
     function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
 
