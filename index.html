@@ -191,10 +191,7 @@
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar space-y-4">
-                <div id="modalImageContainer" class="hidden w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center p-2">
-                    <img id="modalGameImage" src="" alt="項目大圖" class="max-h-64 w-auto object-contain rounded-lg">
-                </div>
-
+                <!-- 區塊一：櫃位放置位置（固定在最上方） -->
                 <div>
                     <span class="text-xs font-bold text-slate-400 block mb-2"><i class="fa-solid fa-map-location-dot"></i> 櫃位放置位置</span>
                     
@@ -229,6 +226,15 @@
                     </div>
                 </div>
 
+                <!-- 區塊二：項目大圖（緊接在櫃位地圖下方，有圖片時自動顯示） -->
+                <div id="modalImageSection" class="hidden">
+                    <span class="text-xs font-bold text-slate-400 block mb-2"><i class="fa-regular fa-image"></i> 外觀參考圖片</span>
+                    <div class="w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center p-2">
+                        <img id="modalGameImage" src="" alt="項目大圖" class="max-h-64 w-auto object-contain rounded-lg">
+                    </div>
+                </div>
+
+                <!-- 區塊三：詳細文字資訊 -->
                 <div id="modalDetailContent" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm"></div>
             </div>
 
@@ -841,23 +847,26 @@
     const isBook = game.type === 'book';
 
     document.getElementById('modalGameName').textContent = name;
+
+    // 處理大圖顯示邏輯
     const rawImageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
     const imageUrl = fixGoogleDriveUrl(rawImageUrl);
-    const imgContainer = document.getElementById('modalImageContainer');
+    const imgSection = document.getElementById('modalImageSection');
     const imgEl = document.getElementById('modalGameImage');
 
     if (imageUrl) {
         imgEl.src = imageUrl;
         imgEl.alt = name;
-        imgContainer.classList.remove('hidden');
-        // 若圖片網址失效或載入錯誤，自動隱藏圖片區塊
+        imgSection.classList.remove('hidden');
+        // 若圖片載入失敗則自動隱藏圖片區塊
         imgEl.onerror = () => {
-            imgContainer.classList.add('hidden');
+            imgSection.classList.add('hidden');
         };
     } else {
         imgEl.src = '';
-        imgContainer.classList.add('hidden');
+        imgSection.classList.add('hidden');
     }
+
     const bgMap = document.getElementById('boardgameMap');
     const bookMap = document.getElementById('bookMap');
     const weiMap = document.getElementById('weiMap');
