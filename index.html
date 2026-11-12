@@ -191,6 +191,10 @@
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <div id="modalImageContainer" class="hidden w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center p-2">
+                    <img id="modalGameImage" src="" alt="項目大圖" class="max-h-64 w-auto object-contain rounded-lg">
+                </div>
+
                 <div>
                     <span class="text-xs font-bold text-slate-400 block mb-2"><i class="fa-solid fa-map-location-dot"></i> 櫃位放置位置</span>
                     
@@ -837,7 +841,23 @@
     const isBook = game.type === 'book';
 
     document.getElementById('modalGameName').textContent = name;
+    const rawImageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
+    const imageUrl = fixGoogleDriveUrl(rawImageUrl);
+    const imgContainer = document.getElementById('modalImageContainer');
+    const imgEl = document.getElementById('modalGameImage');
 
+    if (imageUrl) {
+        imgEl.src = imageUrl;
+        imgEl.alt = name;
+        imgContainer.classList.remove('hidden');
+        // 若圖片網址失效或載入錯誤，自動隱藏圖片區塊
+        imgEl.onerror = () => {
+            imgContainer.classList.add('hidden');
+        };
+    } else {
+        imgEl.src = '';
+        imgContainer.classList.add('hidden');
+    }
     const bgMap = document.getElementById('boardgameMap');
     const bookMap = document.getElementById('bookMap');
     const weiMap = document.getElementById('weiMap');
