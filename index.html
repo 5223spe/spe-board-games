@@ -430,6 +430,16 @@
         }
     }
 
+    // 輔助函式：取得某個 MapConfig 中所有「可放物品的格子」（包含 slots 與有 '*' 開頭的側邊欄）
+    function getAllActiveSlots(cfg) {
+        const result = [...(cfg.slots || [])];
+        const parseSide = (raw) => String(raw || '').split(/[,、]/).map(s => s.trim())
+            .filter(s => s.startsWith('*'))
+            .map(s => s.slice(1).trim())
+            .filter(Boolean);
+        return [...result, ...parseSide(cfg.leftText), ...parseSide(cfg.rightText)];
+    }
+
     // 依據 MapConfig 動態產生列印選項
     function renderPrintOptions() {
         const select = document.getElementById('printLocSelect');
@@ -437,7 +447,7 @@
         
         mapConfigs.forEach(cfg => {
             if (cfg.layoutType !== 'box') {
-                cfg.slots.forEach(slot => {
+                getAllActiveSlots(cfg).forEach(slot => {
                     html += `<option value="${slot}">${cfg.mapGroup} - ${slot}</option>`;
                 });
             }
@@ -446,7 +456,6 @@
         html += `<option value="SWITCH">Nintendo Switch 項目</option>`;
         select.innerHTML = html;
     }
-
     function switchMainTab(tab) {
         currentTab = tab;
         const activeClasses = {
@@ -703,7 +712,7 @@
             const allDynamicSlots = [];
             mapConfigs.forEach(cfg => {
                 if (cfg.layoutType !== 'box') {
-                    cfg.slots.forEach(s => allDynamicSlots.push({ slot: s, layoutType: cfg.layoutType }));
+                    getAllActiveSlots(cfg).forEach(s => allDynamicSlots.push({ slot: s, layoutType: cfg.layoutType }));
                 }
             });
 
@@ -806,36 +815,64 @@
                     </div>
                 </div>
             `;
-        } else if (matchedConfig.layoutType === 'rows') {
-            const rowsHtml = matchedConfig.slots.map(slot => {
-                const isHere = rawLoc.includes(slot.toUpperCase());
-                if (isHere) {
-                    return `<div class="h-16 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner">${slot} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-0.5">在這裡!</span></div>`;
-                }
-                return `<div class="h-16 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500">${slot}</div>`;
-            }).join('');
-            mapContainer.innerHTML = `<div class="border-4 border-slate-800 bg-slate-200 p-2 rounded-xl space-y-2">${rowsHtml}</div>`;
         } else {
-            // 'cabinet' 網格櫃子模式 (依 columns 欄位數與左右灰色文字自動排版)
-            const cols = matchedConfig.columns || 3;
-            const leftLabel = matchedConfig.leftText !== undefined ? matchedConfig.leftText : '其他區';
-            const rightLabel = matchedConfig.rightText !== undefined ? matchedConfig.rightText : '其他區';
+            // 統一處理 'rows' (圖書上下層) 與 'cabinet' (桌遊網格櫃子)，支援用 '*' 標記可亮燈格子
+            const isRowLayout = matchedConfig.layoutType === 'rows';
+            const cols = isRowLayout ? 1 : (matchedConfig.columns || 3);
+            
+            const leftRaw = matchedConfig.leftText !== undefined ? matchedConfig.leftText : (isRowLayout ? '' : '其他區');
+            const rightRaw = matchedConfig.rightText !== undefined ? matchedConfig.rightText : (isRowLayout ? '' : '其他區');
+
+            const leftItems = String(leftRaw || '').split(/[,、]/).map(s => s.trim()).filter(Boolean);
+            const rightItems = String(rightRaw || '').split(/[,、]/).map(s => s.trim()).filter(Boolean);
+
+            // 輔助函式：渲染側邊欄位（有 '*' 開頭則為可亮燈白底格子，否則為不亮燈灰底區塊）
+            const renderSideItem = (rawTxt) => {
+                const isInteractive = rawTxt.startsWith('*');
+                const label = isInteractive ? rawTxt.slice(1).trim() : rawTxt;
+
+                if (isInteractive) {
+                    const isHere = rawLoc.includes(label.toUpperCase());
+                    if (isHere) {
+                        return `<div class="py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs">${label}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span></div>`;
+                    }
+                    return `<div class="py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${label}</div>`;
+                } else {
+                    return `<div class="bg-slate-300 flex items-center justify-center text-slate-400 text-xs px-1 break-words rounded border border-slate-400/40">${label}</div>`;
+                }
+            };
 
             const slotsHtml = matchedConfig.slots.map(slot => {
                 const isHere = rawLoc.includes(slot.toUpperCase());
-                if (isHere) {
-                    return `<div class="min-h-[3.2rem] py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs">${slot}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span></div>`;
+                if (isRowLayout) {
+                    if (isHere) {
+                        return `<div class="h-16 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner">${slot} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-0.5">在這裡!</span></div>`;
+                    }
+                    return `<div class="h-16 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500">${slot}</div>`;
+                } else {
+                    if (isHere) {
+                        return `<div class="min-h-[3.2rem] py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs">${slot}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span></div>`;
+                    }
+                    return `<div class="min-h-[3.2rem] py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${slot}</div>`;
                 }
-                return `<div class="min-h-[3.2rem] py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${slot}</div>`;
             }).join('');
 
-            // 總欄位數 = 中間格子欄數 (cols) + 左側(若有填字則+1) + 右側(若有填字則+1)
-            const totalGridCols = cols + (leftLabel ? 1 : 0) + (rightLabel ? 1 : 0);
-            const leftHtml = leftLabel ? `<div class="bg-slate-300 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs px-1 break-words">${leftLabel}</div>` : '';
-            const rightHtml = rightLabel ? `<div class="bg-slate-300 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs px-1 break-words">${rightLabel}</div>` : '';
+            const totalGridCols = cols + (leftItems.length > 0 ? 1 : 0) + (rightItems.length > 0 ? 1 : 0);
+
+            const leftHtml = leftItems.length > 0 ? `
+                <div class="grid gap-1 border-r-2 border-slate-400 pr-1" style="grid-template-rows: repeat(${leftItems.length}, minmax(0, 1fr));">
+                    ${leftItems.map(renderSideItem).join('')}
+                </div>` : '';
+
+            const rightHtml = rightItems.length > 0 ? `
+                <div class="grid gap-1 border-l-2 border-slate-400 pl-1" style="grid-template-rows: repeat(${rightItems.length}, minmax(0, 1fr));">
+                    ${rightItems.map(renderSideItem).join('')}
+                </div>` : '';
+
+            const outerBg = isRowLayout ? 'bg-slate-200' : 'bg-slate-300';
 
             mapContainer.innerHTML = `
-                <div class="border-4 border-slate-800 bg-slate-300 p-2 rounded-xl grid gap-1 text-center font-bold" style="grid-template-columns: repeat(${totalGridCols}, minmax(0, 1fr));">
+                <div class="border-4 border-slate-800 ${outerBg} p-2 rounded-xl grid gap-1 text-center font-bold" style="grid-template-columns: repeat(${totalGridCols}, minmax(0, 1fr));">
                     ${leftHtml}
                     <div class="grid gap-1" style="grid-column: span ${cols} / span ${cols}; grid-template-columns: repeat(${cols}, minmax(0, 1fr));">
                         ${slotsHtml}
