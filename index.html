@@ -829,15 +829,15 @@
                 return `<div class="min-h-[3.2rem] py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${slot}</div>`;
             }).join('');
 
-            // 依據左右兩側是否有填寫文字，自動計算網格欄數比例
-            const totalGridCols = 3 + (leftLabel ? 1 : 0) + (rightLabel ? 1 : 0);
+            // 總欄位數 = 中間格子欄數 (cols) + 左側(若有填字則+1) + 右側(若有填字則+1)
+            const totalGridCols = cols + (leftLabel ? 1 : 0) + (rightLabel ? 1 : 0);
             const leftHtml = leftLabel ? `<div class="bg-slate-300 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs px-1 break-words">${leftLabel}</div>` : '';
             const rightHtml = rightLabel ? `<div class="bg-slate-300 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs px-1 break-words">${rightLabel}</div>` : '';
 
             mapContainer.innerHTML = `
                 <div class="border-4 border-slate-800 bg-slate-300 p-2 rounded-xl grid gap-1 text-center font-bold" style="grid-template-columns: repeat(${totalGridCols}, minmax(0, 1fr));">
                     ${leftHtml}
-                    <div class="col-span-3 grid gap-1" style="grid-template-columns: repeat(${cols}, minmax(0, 1fr));">
+                    <div class="grid gap-1" style="grid-column: span ${cols} / span ${cols}; grid-template-columns: repeat(${cols}, minmax(0, 1fr));">
                         ${slotsHtml}
                     </div>
                     ${rightHtml}
