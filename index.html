@@ -326,7 +326,7 @@
     </button>
 
     <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyMaeRA-tqk0Tf7PR4Tq1B4DPYVbujjrLm1F0w7xrHz2DTkBxVQ5K_Qd9VQ5H-2idi3/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz8RfREvG6GEoGMxm-IQBs85hCDf9f62RUkVuoYxGbFf_fDrSsLYy3BERti8sNjo_FsBA/exec';
     let allGames = [];
     let mapConfigs = [];
     let filteredGames = [];
@@ -343,10 +343,12 @@
             mapGroup: '桌遊櫃位',
             subtitle: '(6F 潛能教室)',
             layoutType: 'cabinet',
-            columns: 3,
-            slots: ['A1', 'B1', 'C1', 'A2', 'B2', 'C2'],
-            matchKeywords: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
-            colorTheme: 'blue'
+            columns: 4, // 依你的圖可設為 4
+            slots: ['A1', 'B1', 'C1', 'D1', 'A2', 'B2', 'C2', 'D2'],
+            matchKeywords: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D1', 'D2'],
+            colorTheme: 'blue',
+            leftText: '其他區',
+            rightText: '其他區'
         },
         {
             mapGroup: '圖書櫃位',
@@ -814,8 +816,11 @@
             }).join('');
             mapContainer.innerHTML = `<div class="border-4 border-slate-800 bg-slate-200 p-2 rounded-xl space-y-2">${rowsHtml}</div>`;
         } else {
-            // 'cabinet' 網格櫃子模式 (依 columns 欄位數自動排版)
+            // 'cabinet' 網格櫃子模式 (依 columns 欄位數與左右灰色文字自動排版)
             const cols = matchedConfig.columns || 3;
+            const leftLabel = matchedConfig.leftText !== undefined ? matchedConfig.leftText : '其他區';
+            const rightLabel = matchedConfig.rightText !== undefined ? matchedConfig.rightText : '其他區';
+
             const slotsHtml = matchedConfig.slots.map(slot => {
                 const isHere = rawLoc.includes(slot.toUpperCase());
                 if (isHere) {
@@ -824,13 +829,18 @@
                 return `<div class="min-h-[3.2rem] py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${slot}</div>`;
             }).join('');
 
+            // 依據左右兩側是否有填寫文字，自動計算網格欄數比例
+            const totalGridCols = 3 + (leftLabel ? 1 : 0) + (rightLabel ? 1 : 0);
+            const leftHtml = leftLabel ? `<div class="bg-slate-300 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs px-1 break-words">${leftLabel}</div>` : '';
+            const rightHtml = rightLabel ? `<div class="bg-slate-300 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs px-1 break-words">${rightLabel}</div>` : '';
+
             mapContainer.innerHTML = `
-                <div class="border-4 border-slate-800 bg-slate-300 p-2 rounded-xl grid grid-cols-5 gap-1 text-center font-bold">
-                    <div class="bg-slate-300 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
+                <div class="border-4 border-slate-800 bg-slate-300 p-2 rounded-xl grid gap-1 text-center font-bold" style="grid-template-columns: repeat(${totalGridCols}, minmax(0, 1fr));">
+                    ${leftHtml}
                     <div class="col-span-3 grid gap-1" style="grid-template-columns: repeat(${cols}, minmax(0, 1fr));">
                         ${slotsHtml}
                     </div>
-                    <div class="bg-slate-300 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
+                    ${rightHtml}
                 </div>
             `;
         }
