@@ -2,10 +2,10 @@
 <html lang="zh-TW">
 <head>
     <!-- 網頁分頁與 iOS 主畫面圖示 -->
-<link rel="shortcut icon" href="./icon.png?v=6">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon.png?v=6">
-<link rel="apple-touch-icon" href="./icon.png?v=6">
-<link rel="manifest" href="./manifest.json?v=6">
+    <link rel="shortcut icon" href="./icon.png?v=6">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon.png?v=6">
+    <link rel="apple-touch-icon" href="./icon.png?v=6">
+    <link rel="manifest" href="./manifest.json?v=6">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <!-- 引入芫荽 (Iansui) 字型 CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/iansui@5.0.1/index.css">
 
@@ -22,20 +21,10 @@
         body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
 
         /* 自訂美化 Modal 滾動條 */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* 列印專用 CSS 樣式 */
         @media print {
@@ -53,30 +42,11 @@
             .no-print, header, .flex.border-b, .bg-white.border, #itemCount, #loading, #gamesGrid, #mapModal, #addModal, #printModal, #backToTopBtn {
                 display: none !important;
             }
-            #printSection {
-                display: block !important;
-            }
-            .print-page-break {
-                page-break-after: always;
-                break-after: page;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-                font-size: 14px;
-            }
-            th, td {
-                border: 1px solid #333 !important;
-                padding: 6px 8px;
-                text-align: left;
-            }
-            th {
-                background-color: #f0f0f0 !important;
-                font-weight: bold;
-                text-align: center;
-                -webkit-print-color-adjust: exact;
-            }
+            #printSection { display: block !important; }
+            .print-page-break { page-break-after: always; break-after: page; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+            th, td { border: 1px solid #333 !important; padding: 6px 8px; text-align: left; }
+            th { background-color: #f0f0f0 !important; font-weight: bold; text-align: center; -webkit-print-color-adjust: exact; }
             .cat-cell {
                 writing-mode: vertical-lr;
                 text-align: center;
@@ -132,29 +102,24 @@
 
         <!-- Search & Category Filter Section -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-6 shadow-sm space-y-4">
-            <!-- 搜尋框 -->
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
                 <input type="text" id="searchInput" oninput="filterGames()" placeholder="搜尋名稱、作者、位置（如：A1、上層）或備註..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none text-sm transition-all">
             </div>
 
-            <!-- 動態分類按鈕區 -->
             <div>
                 <div id="bgCatWrapper" class="mb-3">
                     <span class="text-xs font-bold text-slate-400 block mb-2">桌遊類別</span>
                     <div id="boardgameCategoryButtons" class="flex flex-wrap gap-2"></div>
                 </div>
-
                 <div id="cardCatWrapper" class="mb-3">
                     <span class="text-xs font-bold text-slate-400 block mb-2">牌卡類別</span>
                     <div id="cardCategoryButtons" class="flex flex-wrap gap-2"></div>
                 </div>
-
                 <div id="bookCatWrapper" class="mb-3">
                     <span class="text-xs font-bold text-slate-400 block mb-2">圖書類別</span>
                     <div id="bookCategoryButtons" class="flex flex-wrap gap-2"></div>
                 </div>
-
                 <div id="switchCatWrapper">
                     <span class="text-xs font-bold text-slate-400 block mb-2">Switch 類別</span>
                     <div id="switchCategoryButtons" class="flex flex-wrap gap-2"></div>
@@ -178,61 +143,30 @@
     <!-- 列印專用隱藏區域 -->
     <div id="printSection" class="hidden"></div>
 
-    <!-- 1. 詳細資訊與櫃位示意圖 Modal -->
+    <!-- 1. 詳細資訊與動態櫃位示意圖 Modal -->
     <div id="mapModal" onclick="closeMapModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden cursor-pointer">
         <div onclick="event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden cursor-default border border-slate-100 relative">
             
             <div class="text-center border-b pb-3 pt-6 px-6 relative shrink-0">
                 <button onclick="closeMapModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold z-10">&times;</button>
                 <h2 id="modalGameName" class="text-2xl font-extrabold text-slate-800 mb-1">--</h2>
-                <p id="boardgameLocationSubtitle" class="text-base font-bold text-blue-600 hidden">(6F 潛能教室)</p>
-                <p id="bookLocationSubtitle" class="text-base font-bold text-amber-600 hidden">(6F 資藝教室)</p>
-                <p id="weiLocationSubtitle" class="text-base font-bold text-emerald-600 hidden">(葳的座位後方)</p>
+                <p id="dynamicLocationSubtitle" class="text-base font-bold text-blue-600 hidden"></p>
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar space-y-4">
-                <!-- 區塊一：櫃位放置位置（固定在最上方） -->
+                <!-- 區塊一：動態櫃位放置位置（固定在最上方） -->
                 <div>
                     <span class="text-xs font-bold text-slate-400 block mb-2"><i class="fa-solid fa-map-location-dot"></i> 櫃位放置位置</span>
-                    
-                    <div id="boardgameMap" class="border-4 border-slate-800 bg-slate-300 p-2 rounded-xl grid grid-cols-5 gap-1 text-center font-bold hidden">
-                        <div class="bg-slate-300 h-28 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
-                        <div class="col-span-3 grid grid-rows-2 gap-1 h-28">
-                            <div class="grid grid-cols-3 gap-1">
-                                <div id="loc-A1" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">A1</div>
-                                <div id="loc-B1" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">B1</div>
-                                <div id="loc-C1" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">C1</div>
-                            </div>
-                            <div class="grid grid-cols-3 gap-1">
-                                <div id="loc-A2" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">A2</div>
-                                <div id="loc-B2" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">B2</div>
-                                <div id="loc-C2" class="bg-white flex flex-col items-center justify-center rounded border-2 border-slate-300">C2</div>
-                            </div>
-                        </div>
-                        <div class="bg-slate-300 h-28 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
-                    </div>
-
-                    <div id="bookMap" class="border-4 border-slate-800 bg-slate-200 p-2 rounded-xl space-y-2 hidden">
-                        <div id="loc-上層" class="h-16 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">上層</div>
-                        <div id="loc-下層" class="h-16 bg-white border-2 border-slate-300 rounded flex flex-col items-center justify-center font-bold text-slate-700">下層</div>
-                    </div>
-
-                    <div id="weiMap" class="border-4 border-slate-800 bg-slate-100 p-4 rounded-xl hidden">
-                        <div class="bg-amber-400 border-2 border-amber-600 rounded-xl p-4 text-center text-amber-950 font-bold shadow-inner flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-box-archive text-4xl mb-1 text-amber-900"></i>
-                            <span class="text-sm">葳的座位後方紙箱</span>
-                            <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-1">放置於此</span>
-                        </div>
-                    </div>
+                    <div id="dynamicMapContainer"></div>
                 </div>
 
                 <!-- 區塊二：項目大圖（緊接在櫃位地圖下方，有圖片時自動顯示） -->
                 <div id="modalImageSection" class="hidden">
-    <span class="text-xs font-bold text-slate-400 block mb-2"><i class="fa-regular fa-image"></i> 示意圖</span>
-    <div class="w-full bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center p-3">
-        <img id="modalGameImage" src="" alt="項目大圖" class="max-h-60 w-auto object-contain rounded-lg">
-    </div>
-</div>
+                    <span class="text-xs font-bold text-slate-400 block mb-2"><i class="fa-regular fa-image"></i> 示意圖</span>
+                    <div class="w-full bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center p-3">
+                        <img id="modalGameImage" src="" alt="項目大圖" class="max-h-60 w-auto object-contain rounded-lg">
+                    </div>
+                </div>
 
                 <!-- 區塊三：詳細文字資訊 -->
                 <div id="modalDetailContent" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm"></div>
@@ -367,16 +301,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">選擇欲列印的區域</label>
                     <select id="printLocSelect" class="w-full p-2 border rounded-lg text-sm bg-slate-50 font-bold">
-                        <option value="ALL">全部位置 (依櫃位分頁印出)</option>
-                        <option value="A1">桌遊 - A1 區</option>
-                        <option value="A2">桌遊 - A2 區</option>
-                        <option value="B1">桌遊 - B1 區</option>
-                        <option value="B2">桌遊 - B2 區</option>
-                        <option value="C1">桌遊 - C1 區</option>
-                        <option value="C2">桌遊 - C2 區</option>
-                        <option value="上層">圖書 - 上層</option>
-                        <option value="下層">圖書 - 下層</option>
-                        <option value="SWITCH">Nintendo Switch 項目</option>
+                        <!-- 由 MapConfig 動態產生 -->
                     </select>
                 </div>
 
@@ -401,25 +326,50 @@
     </button>
 
     <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxfLoAcfxc19WP5jUsj1HBMS6ILImc-AXOuU1RaNbtVHOOLV_BiSpoogltHlM08xIcdBg/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyMaeRA-tqk0Tf7PR4Tq1B4DPYVbujjrLm1F0w7xrHz2DTkBxVQ5K_Qd9VQ5H-2idi3/exec';
     let allGames = [];
+    let mapConfigs = [];
     let filteredGames = [];
     let currentTab = 'all';
     let selectedBoardgameCategory = '全部類別';
     let selectedCardCategory = '全部類別';
     let selectedBookCategory = '全部類別';
     let selectedSwitchCategory = '全部類別';
-
     let currentActiveItem = null;
 
-    // 分頁優化參數
+    // 預設地圖設定 (當試算表尚未建立 MapConfig 分頁時的備用設定)
+    const DEFAULT_MAP_CONFIGS = [
+        {
+            mapGroup: '桌遊櫃位',
+            subtitle: '(6F 潛能教室)',
+            layoutType: 'cabinet',
+            columns: 3,
+            slots: ['A1', 'B1', 'C1', 'A2', 'B2', 'C2'],
+            matchKeywords: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+            colorTheme: 'blue'
+        },
+        {
+            mapGroup: '圖書櫃位',
+            subtitle: '(6F 資藝教室)',
+            layoutType: 'rows',
+            columns: 1,
+            slots: ['上層', '下層'],
+            matchKeywords: ['上層', '下層'],
+            colorTheme: 'amber'
+        },
+        {
+            mapGroup: '特別區域',
+            subtitle: '(葳的座位後方)',
+            layoutType: 'box',
+            columns: 1,
+            slots: ['葳的座位後方紙箱'],
+            matchKeywords: ['WEI', '座位', '後方'],
+            colorTheme: 'emerald'
+        }
+    ];
+
     let currentPage = 1;
     const PAGE_SIZE = 24; 
-
-    const DEFAULT_BG_CATS = [];
-    const DEFAULT_CARD_CATS = [];
-    const DEFAULT_BOOK_CATS = [];
-    const DEFAULT_SWITCH_CATS = [];
 
     const parseTags = (val) => {
         if (!val) return [];
@@ -455,8 +405,18 @@
 
         try {
             const res = await fetch(API_URL);
-            allGames = await res.json();
+            const data = await res.json();
             
+            // 相容新舊資料格式
+            if (Array.isArray(data)) {
+                allGames = data;
+                mapConfigs = DEFAULT_MAP_CONFIGS;
+            } else {
+                allGames = data.items || [];
+                mapConfigs = (data.mapConfig && data.mapConfig.length > 0) ? data.mapConfig : DEFAULT_MAP_CONFIGS;
+            }
+            
+            renderPrintOptions();
             renderCategoryButtons();
             filterGames();
         } catch (err) {
@@ -468,26 +428,37 @@
         }
     }
 
+    // 依據 MapConfig 動態產生列印選項
+    function renderPrintOptions() {
+        const select = document.getElementById('printLocSelect');
+        let html = `<option value="ALL">全部位置 (依櫃位分頁印出)</option>`;
+        
+        mapConfigs.forEach(cfg => {
+            if (cfg.layoutType !== 'box') {
+                cfg.slots.forEach(slot => {
+                    html += `<option value="${slot}">${cfg.mapGroup} - ${slot}</option>`;
+                });
+            }
+        });
+        
+        html += `<option value="SWITCH">Nintendo Switch 項目</option>`;
+        select.innerHTML = html;
+    }
+
     function switchMainTab(tab) {
         currentTab = tab;
-        
         const activeClasses = {
             'all': 'border-indigo-600 text-indigo-600',
             'game': 'border-blue-600 text-blue-600',
             'book': 'border-amber-500 text-amber-500',
             'switch': 'border-red-500 text-red-500'
         };
-        
         const inactiveClass = "border-transparent text-slate-500 hover:text-slate-700";
         const baseClass = "px-5 py-2.5 font-bold text-sm border-b-2 flex items-center gap-2 transition-all shrink-0";
 
         ['all', 'game', 'book', 'switch'].forEach(t => {
             const btn = document.getElementById(`tab-${t}`);
-            if (t === tab) {
-                btn.className = `${baseClass} ${activeClasses[t]}`;
-            } else {
-                btn.className = `${baseClass} ${inactiveClass}`;
-            }
+            btn.className = (t === tab) ? `${baseClass} ${activeClasses[t]}` : `${baseClass} ${inactiveClass}`;
         });
 
         document.getElementById('bgCatWrapper').style.display = (tab === 'all' || tab === 'game') ? 'block' : 'none';
@@ -505,42 +476,37 @@
         const dynamicSwitchCats = new Set();
 
         allGames.forEach(g => {
-        parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
-        parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
-        parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
-        parseTags(g.switchCategories).forEach(t => dynamicSwitchCats.add(t));
-    });
+            parseTags(g.boardgameCategories).forEach(t => dynamicBgCats.add(t));
+            parseTags(g.cardCategories).forEach(t => dynamicCardCats.add(t));
+            parseTags(g.bookCategories).forEach(t => dynamicBookCats.add(t));
+            parseTags(g.switchCategories).forEach(t => dynamicSwitchCats.add(t));
+        });
 
-    // 渲染桌遊類別按鈕
-    document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
-        const active = selectedBoardgameCategory === cat;
-        return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-    }).join('');
+        document.getElementById('boardgameCategoryButtons').innerHTML = ['全部類別', ...dynamicBgCats].map(cat => {
+            const active = selectedBoardgameCategory === cat;
+            return `<button onclick="selectCat('bg', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+        }).join('');
 
-    // 渲染牌卡類別按鈕
-    document.getElementById('cardCategoryButtons').innerHTML = ['全部類別', ...dynamicCardCats].map(cat => {
-        const active = selectedCardCategory === cat;
-        return `<button onclick="selectCat('card', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-    }).join('');
+        document.getElementById('cardCategoryButtons').innerHTML = ['全部類別', ...dynamicCardCats].map(cat => {
+            const active = selectedCardCategory === cat;
+            return `<button onclick="selectCat('card', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+        }).join('');
 
-    // 渲染圖書類別按鈕
-    document.getElementById('bookCategoryButtons').innerHTML = ['全部類別', ...dynamicBookCats].map(cat => {
-        const active = selectedBookCategory === cat;
-        return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-    }).join('');
+        document.getElementById('bookCategoryButtons').innerHTML = ['全部類別', ...dynamicBookCats].map(cat => {
+            const active = selectedBookCategory === cat;
+            return `<button onclick="selectCat('book', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+        }).join('');
 
-    // 渲染 Switch 類別按鈕
-    document.getElementById('switchCategoryButtons').innerHTML = ['全部類別', ...dynamicSwitchCats].map(cat => {
-        const active = selectedSwitchCategory === cat;
-        return `<button onclick="selectCat('switch', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
-    }).join('');
+        document.getElementById('switchCategoryButtons').innerHTML = ['全部類別', ...dynamicSwitchCats].map(cat => {
+            const active = selectedSwitchCategory === cat;
+            return `<button onclick="selectCat('switch', '${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${active ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat}</button>`;
+        }).join('');
 
-    // 更新新增/編輯 Modal 的下拉選單建議清單 (datalist)
-    document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
-    document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
-    document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
-    document.getElementById('listSwitchCats').innerHTML = Array.from(dynamicSwitchCats).map(cat => `<option value="${cat}">`).join('');
-}
+        document.getElementById('listBgCats').innerHTML = Array.from(dynamicBgCats).map(cat => `<option value="${cat}">`).join('');
+        document.getElementById('listCardCats').innerHTML = Array.from(dynamicCardCats).map(cat => `<option value="${cat}">`).join('');
+        document.getElementById('listBookCats').innerHTML = Array.from(dynamicBookCats).map(cat => `<option value="${cat}">`).join('');
+        document.getElementById('listSwitchCats').innerHTML = Array.from(dynamicSwitchCats).map(cat => `<option value="${cat}">`).join('');
+    }
 
     function selectCat(type, cat) {
         if (type === 'bg') selectedBoardgameCategory = cat;
@@ -583,7 +549,6 @@
         });
 
         document.getElementById('itemCount').textContent = filteredGames.length;
-        
         currentPage = 1;
         document.getElementById('gamesGrid').innerHTML = '';
         renderNextBatch();
@@ -622,29 +587,10 @@
             const bookTags = parseTags(game.bookCategories);
             const switchTags = parseTags(game.switchCategories);
 
-            const bgCatHtml = bgTags.length ? `
-                <div class="mb-2">
-                    <span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span>
-                    <div class="flex flex-wrap gap-1">${bgTags.map(t => `<span class="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-                </div>` : '';
-
-            const cardCatHtml = cardTags.length ? `
-                <div class="mb-2">
-                    <span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span>
-                    <div class="flex flex-wrap gap-1">${cardTags.map(t => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-                </div>` : '';
-
-            const bookCatHtml = bookTags.length ? `
-                <div class="mb-2">
-                    <span class="text-[11px] font-semibold text-slate-400 block mb-1">圖書類別</span>
-                    <div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-                </div>` : '';
-
-            const switchCatHtml = switchTags.length ? `
-                <div class="mb-2">
-                    <span class="text-[11px] font-semibold text-slate-400 block mb-1">Switch 類別</span>
-                    <div class="flex flex-wrap gap-1">${switchTags.map(t => `<span class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-xs font-medium">${t}</span>`).join('')}</div>
-                </div>` : '';
+            const bgCatHtml = bgTags.length ? `<div class="mb-2"><span class="text-[11px] font-semibold text-slate-400 block mb-1">桌遊類別</span><div class="flex flex-wrap gap-1">${bgTags.map(t => `<span class="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>` : '';
+            const cardCatHtml = cardTags.length ? `<div class="mb-2"><span class="text-[11px] font-semibold text-slate-400 block mb-1">牌卡類別</span><div class="flex flex-wrap gap-1">${cardTags.map(t => `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>` : '';
+            const bookCatHtml = bookTags.length ? `<div class="mb-2"><span class="text-[11px] font-semibold text-slate-400 block mb-1">圖書類別</span><div class="flex flex-wrap gap-1">${bookTags.map(t => `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>` : '';
+            const switchCatHtml = switchTags.length ? `<div class="mb-2"><span class="text-[11px] font-semibold text-slate-400 block mb-1">Switch 類別</span><div class="flex flex-wrap gap-1">${switchTags.map(t => `<span class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>` : '';
 
             const fallbackIcon = isBook ? 'fa-book' : (isSwitch ? 'fa-gamepad' : 'fa-box-archive');
 
@@ -666,21 +612,15 @@
                             <i class="fa-solid fa-location-dot text-amber-600"></i> ${location}
                         </span>
                     </div>
-
                     <div class="p-5">
                         <h3 class="font-bold text-slate-900 text-lg mb-1 leading-snug">${name}</h3>
                         ${author ? `<p class="text-xs font-medium text-slate-500 mb-3"><i class="fa-solid fa-user-pen text-slate-400 mr-1"></i>${author}</p>` : ''}
-
                         ${(players || duration) ? `
                         <div class="flex items-center gap-3 text-xs text-slate-500 mb-3 pb-2 border-b border-slate-100">
                             ${players ? `<span><i class="fa-solid fa-users"></i> ${players}</span>` : ''}
                             ${duration ? `<span><i class="fa-solid fa-clock"></i> ${duration}</span>` : ''}
                         </div>` : ''}
-
-                        ${bgCatHtml}
-                        ${cardCatHtml}
-                        ${bookCatHtml}
-                        ${switchCatHtml}
+                        ${bgCatHtml}${cardCatHtml}${bookCatHtml}${switchCatHtml}
                     </div>
                 </div>
                 ${notes ? `<div class="px-5 py-2.5 bg-slate-50 border-t text-xs text-slate-500 break-all">${formatNotesWithLinks(notes)}</div>` : ''}
@@ -704,15 +644,7 @@
             catMap[primaryCat].push(item);
         });
 
-        let html = `<table>
-            <thead>
-                <tr>
-                    <th style="width: 25%;">類別</th>
-                    <th style="width: 75%;">名稱</th>
-                </tr>
-            </thead>
-            <tbody>`;
-
+        let html = `<table><thead><tr><th style="width: 25%;">類別</th><th style="width: 75%;">名稱</th></tr></thead><tbody>`;
         const catNames = Object.keys(catMap);
         if (catNames.length === 0) {
             html += `<tr><td colspan="2" style="text-align: center; color: #888;">(尚無資料)</td></tr>`;
@@ -721,14 +653,11 @@
                 const list = catMap[catName];
                 list.forEach((book, idx) => {
                     html += `<tr>`;
-                    if (idx === 0) {
-                        html += `<td rowspan="${list.length}" class="cat-cell">${catName}</td>`;
-                    }
+                    if (idx === 0) html += `<td rowspan="${list.length}" class="cat-cell">${catName}</td>`;
                     html += `<td style="font-weight: 500;">${book.name || ''}</td></tr>`;
                 });
             });
         }
-
         html += `</tbody></table>`;
         return html;
     }
@@ -743,29 +672,12 @@
         for (let i = 0; i < rowCount; i++) {
             const leftName = leftList[i] ? leftList[i].name : '';
             const rightName = rightList[i] ? rightList[i].name : '';
-            tableRows += `
-                <tr>
-                    <td style="width: 50%; font-weight: 500;">${leftName}</td>
-                    <td style="width: 50%; font-weight: 500;">${rightName}</td>
-                </tr>
-            `;
+            tableRows += `<tr><td style="width: 50%; font-weight: 500;">${leftName}</td><td style="width: 50%; font-weight: 500;">${rightName}</td></tr>`;
         }
-
         if (rowCount === 0) {
             tableRows = `<tr><td style="width: 50%; text-align: center; color: #888;">(尚無資料)</td><td style="width: 50%;"></td></tr>`;
         }
-
-        return `
-            <table>
-                <thead>
-                    <tr>
-                        <th>${titleName}</th>
-                        <th>${titleName}</th>
-                    </tr>
-                </thead>
-                <tbody>${tableRows}</tbody>
-            </table>
-        `;
+        return `<table><thead><tr><th>${titleName}</th><th>${titleName}</th></tr></thead><tbody>${tableRows}</tbody></table>`;
     }
 
     function executePrint() {
@@ -785,19 +697,29 @@
             `;
             printSec.appendChild(pageDiv);
         } else {
-            const locations = (targetLoc === 'ALL') ? ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', '上層', '下層'] : [targetLoc];
+            // 從 mapConfigs 動態抓取所有非 box 類型的櫃位格子
+            const allDynamicSlots = [];
+            mapConfigs.forEach(cfg => {
+                if (cfg.layoutType !== 'box') {
+                    cfg.slots.forEach(s => allDynamicSlots.push({ slot: s, layoutType: cfg.layoutType }));
+                }
+            });
 
-            locations.forEach((loc, idx) => {
-                const items = allGames.filter(g => (g.location || '').toUpperCase().includes(loc));
+            const targetList = (targetLoc === 'ALL') 
+                ? allDynamicSlots 
+                : allDynamicSlots.filter(item => item.slot === targetLoc);
+
+            targetList.forEach((entry, idx) => {
+                const loc = entry.slot;
+                const items = allGames.filter(g => (g.location || '').toUpperCase().includes(loc.toUpperCase()));
                 if (items.length === 0 && targetLoc !== 'ALL') return;
 
-                const isBook = loc === '上層' || loc === '下層';
-                const typeTitle = isBook ? '圖書列表' : '桌遊與牌卡列表';
-
-                let contentTableHtml = isBook ? generateBookCategoryHtml(items) : generateStandardTwoColumnHtml(items, '桌遊品名');
+                const isRowType = entry.layoutType === 'rows';
+                const typeTitle = isRowType ? '圖書列表' : '桌遊與牌卡列表';
+                let contentTableHtml = isRowType ? generateBookCategoryHtml(items) : generateStandardTwoColumnHtml(items, '桌遊品名');
 
                 const pageDiv = document.createElement('div');
-                pageDiv.className = (idx < locations.length - 1) ? 'print-page-break' : '';
+                pageDiv.className = (idx < targetList.length - 1) ? 'print-page-break' : '';
                 pageDiv.innerHTML = `
                     <div style="margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: flex-end;">
                         <h2 style="font-size: 18px; font-weight: bold; margin: 0;">櫃位名稱：[ ${loc} ] ${typeTitle}</h2>
@@ -810,12 +732,146 @@
         }
 
         closePrintModal();
-        setTimeout(() => {
-            window.print();
-        }, 300);
+        setTimeout(() => { window.print(); }, 300);
     }
 
-    /* Modal & Form Helpers */
+    /* ----- 動態渲染櫃位地圖與大圖預覽核心邏輯 ----- */
+    function openMapModal(game) {
+        currentActiveItem = game;
+        const name = game.name || '未命名項目';
+        const location = game.location || '未標示';
+        const rawLoc = String(location).toUpperCase();
+
+        document.getElementById('modalGameName').textContent = name;
+
+        // 1. 處理示意圖大圖顯示邏輯 (完整保留 index_2 的功能)
+        const rawImageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
+        const imageUrl = fixGoogleDriveUrl(rawImageUrl);
+        const imgSection = document.getElementById('modalImageSection');
+        const imgEl = document.getElementById('modalGameImage');
+
+        if (imageUrl) {
+            imgEl.src = imageUrl;
+            imgEl.alt = name;
+            imgSection.classList.remove('hidden');
+            imgEl.onerror = () => { imgSection.classList.add('hidden'); };
+        } else {
+            imgEl.src = '';
+            imgSection.classList.add('hidden');
+        }
+
+        // 2. 尋找最符合的 MapConfig 設定
+        let matchedConfig = mapConfigs.find(cfg => 
+            cfg.matchKeywords.some(kw => rawLoc.includes(kw.toUpperCase()))
+        );
+
+        // 若關鍵字沒比對到，依資料類型給預設地圖 (圖書預設 rows，其他預設 cabinet)
+        if (!matchedConfig) {
+            matchedConfig = (game.type === 'book') 
+                ? mapConfigs.find(c => c.layoutType === 'rows') || mapConfigs[0]
+                : mapConfigs.find(c => c.layoutType === 'cabinet') || mapConfigs[0];
+        }
+
+        // 3. 設定副標題與顏色
+        const subEl = document.getElementById('dynamicLocationSubtitle');
+        const colorMap = {
+            'blue': 'text-blue-600',
+            'amber': 'text-amber-600',
+            'emerald': 'text-emerald-600',
+            'red': 'text-red-600',
+            'indigo': 'text-indigo-600'
+        };
+        if (matchedConfig && matchedConfig.subtitle) {
+            subEl.textContent = matchedConfig.subtitle;
+            subEl.className = `text-base font-bold ${colorMap[matchedConfig.colorTheme] || 'text-blue-600'}`;
+            subEl.classList.remove('hidden');
+        } else {
+            subEl.classList.add('hidden');
+        }
+
+        // 4. 動態產生櫃位示意圖 HTML
+        const mapContainer = document.getElementById('dynamicMapContainer');
+        if (!matchedConfig) {
+            mapContainer.innerHTML = `<div class="p-4 bg-slate-100 rounded-xl text-center text-slate-500 text-sm">無對應櫃位圖設定</div>`;
+        } else if (matchedConfig.layoutType === 'box') {
+            const boxLabel = matchedConfig.slots[0] || location;
+            mapContainer.innerHTML = `
+                <div class="border-4 border-slate-800 bg-slate-100 p-4 rounded-xl">
+                    <div class="bg-amber-400 border-2 border-amber-600 rounded-xl p-4 text-center text-amber-950 font-bold shadow-inner flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-box-archive text-4xl mb-1 text-amber-900"></i>
+                        <span class="text-sm">${boxLabel}</span>
+                        <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-1">放置於此</span>
+                    </div>
+                </div>
+            `;
+        } else if (matchedConfig.layoutType === 'rows') {
+            const rowsHtml = matchedConfig.slots.map(slot => {
+                const isHere = rawLoc.includes(slot.toUpperCase());
+                if (isHere) {
+                    return `<div class="h-16 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner">${slot} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-0.5">在這裡!</span></div>`;
+                }
+                return `<div class="h-16 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500">${slot}</div>`;
+            }).join('');
+            mapContainer.innerHTML = `<div class="border-4 border-slate-800 bg-slate-200 p-2 rounded-xl space-y-2">${rowsHtml}</div>`;
+        } else {
+            // 'cabinet' 網格櫃子模式 (依 columns 欄位數自動排版)
+            const cols = matchedConfig.columns || 3;
+            const slotsHtml = matchedConfig.slots.map(slot => {
+                const isHere = rawLoc.includes(slot.toUpperCase());
+                if (isHere) {
+                    return `<div class="min-h-[3.2rem] py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs">${slot}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span></div>`;
+                }
+                return `<div class="min-h-[3.2rem] py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${slot}</div>`;
+            }).join('');
+
+            mapContainer.innerHTML = `
+                <div class="border-4 border-slate-800 bg-slate-300 p-2 rounded-xl grid grid-cols-5 gap-1 text-center font-bold">
+                    <div class="bg-slate-300 flex items-center justify-center text-slate-400 border-r-2 border-slate-400 text-xs">其他區</div>
+                    <div class="col-span-3 grid gap-1" style="grid-template-columns: repeat(${cols}, minmax(0, 1fr));">
+                        ${slotsHtml}
+                    </div>
+                    <div class="bg-slate-300 flex items-center justify-center text-slate-400 border-l-2 border-slate-400 text-xs">其他區</div>
+                </div>
+            `;
+        }
+
+        // 5. 顯示詳細資訊
+        const bgTags = parseTags(game.boardgameCategories);
+        const cardTags = parseTags(game.cardCategories);
+        const bookTags = parseTags(game.bookCategories);
+        const switchTags = parseTags(game.switchCategories);
+
+        let detailHtml = `<div><span class="text-slate-400 font-bold">放置位置：</span><span class="font-extrabold text-amber-700">${location}</span></div>`;
+        if (game.author) detailHtml += `<div><span class="text-slate-400 font-bold">作者：</span>${game.author}</div>`;
+        if (game.players) detailHtml += `<div><span class="text-slate-400 font-bold">適合人數：</span>${game.players}</div>`;
+        if (game.duration) detailHtml += `<div><span class="text-slate-400 font-bold">遊玩時間：</span>${game.duration}</div>`;
+        if (bgTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">桌遊類別：</span><div class="flex flex-wrap gap-1">${bgTags.map(t=>`<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+        if (cardTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">牌卡類別：</span><div class="flex flex-wrap gap-1">${cardTags.map(t=>`<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+        if (bookTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">圖書類別：</span><div class="flex flex-wrap gap-1">${bookTags.map(t=>`<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+        if (switchTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">Switch 類別：</span><div class="flex flex-wrap gap-1">${switchTags.map(t=>`<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
+        if (game.notes) detailHtml += `<div class="pt-2 border-t border-slate-200"><span class="text-slate-400 font-bold block mb-1">備註 / 說明：</span><div class="text-slate-600 break-all">${formatNotesWithLinks(game.notes)}</div></div>`;
+
+        document.getElementById('modalDetailContent').innerHTML = detailHtml;
+        
+        const modal = document.getElementById('mapModal');
+        modal.classList.remove('hidden');
+
+        // 每次打開視窗時，強制將內部滾動條歸零回到最上方 (保留 index_2 的優化)
+        const scrollContainer = modal.querySelector('.custom-scrollbar');
+        if (scrollContainer) {
+            scrollContainer.scrollTop = 0;
+        }
+    }
+
+    function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
+
+    function switchToEditFromModal() {
+        if (!currentActiveItem) return;
+        const item = currentActiveItem;
+        closeMapModal();
+        openEditModal(item);
+    }
+
     function toggleFormFields() {
         const type = document.getElementById('addItemType').value;
         const gameFields = document.getElementById('gameFields');
@@ -839,142 +895,13 @@
         }
     }
 
-    function openMapModal(game) {
-    currentActiveItem = game;
-
-    const name = game.name || '未命名項目';
-    const location = game.location || '未標示';
-    const isBook = game.type === 'book';
-
-    document.getElementById('modalGameName').textContent = name;
-
-    // 處理大圖顯示邏輯
-    const rawImageUrl = (game.imageUrl || game.image || game.photo || game.img || '').trim();
-    const imageUrl = fixGoogleDriveUrl(rawImageUrl);
-    const imgSection = document.getElementById('modalImageSection');
-    const imgEl = document.getElementById('modalGameImage');
-
-    if (imageUrl) {
-        imgEl.src = imageUrl;
-        imgEl.alt = name;
-        imgSection.classList.remove('hidden');
-        // 若圖片載入失敗則自動隱藏圖片區塊
-        imgEl.onerror = () => {
-            imgSection.classList.add('hidden');
-        };
-    } else {
-        imgEl.src = '';
-        imgSection.classList.add('hidden');
-    }
-
-    const bgMap = document.getElementById('boardgameMap');
-    const bookMap = document.getElementById('bookMap');
-    const weiMap = document.getElementById('weiMap');
-
-    const bgSub = document.getElementById('boardgameLocationSubtitle');
-    const bookSub = document.getElementById('bookLocationSubtitle');
-    const weiSub = document.getElementById('weiLocationSubtitle');
-
-    [bgMap, bookMap, weiMap, bgSub, bookSub, weiSub].forEach(el => el.classList.add('hidden'));
-
-    const rawLoc = String(location || '').toUpperCase();
-
-    if (rawLoc.includes('WEI') || rawLoc.includes('座位') || rawLoc.includes('後方')) {
-        weiMap.classList.remove('hidden');
-        weiSub.classList.remove('hidden');
-    } 
-    else if (isBook) {
-        bookMap.classList.remove('hidden');
-        bookSub.classList.remove('hidden');
-
-        ['上層', '下層'].forEach(loc => {
-            const el = document.getElementById(`loc-${loc}`);
-            if (el) {
-                if (location.includes(loc)) {
-                    el.className = "h-16 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner";
-                    el.innerHTML = `${loc} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-0.5">在這裡!</span>`;
-                } else {
-                    el.className = "h-16 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500";
-                    el.innerHTML = loc;
-                }
-            }
-        });
-    } 
-    else {
-        bgMap.classList.remove('hidden');
-        bgSub.classList.remove('hidden');
-
-        ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].forEach(loc => {
-            const el = document.getElementById(`loc-${loc}`);
-            if (el) {
-                if (rawLoc.includes(loc)) {
-                    el.className = "bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs";
-                    el.innerHTML = `${loc}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span>`;
-                } else {
-                    el.className = "bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300";
-                    el.innerHTML = loc;
-                }
-            }
-        });
-    }
-
-    const bgTags = parseTags(game.boardgameCategories);
-    const cardTags = parseTags(game.cardCategories);
-    const bookTags = parseTags(game.bookCategories);
-    const switchTags = parseTags(game.switchCategories);
-
-    let detailHtml = `
-        <div><span class="text-slate-400 font-bold">放置位置：</span><span class="font-extrabold text-amber-700">${location}</span></div>
-    `;
-    if (game.author) detailHtml += `<div><span class="text-slate-400 font-bold">作者：</span>${game.author}</div>`;
-    if (game.players) detailHtml += `<div><span class="text-slate-400 font-bold">適合人數：</span>${game.players}</div>`;
-    if (game.duration) detailHtml += `<div><span class="text-slate-400 font-bold">遊玩時間：</span>${game.duration}</div>`;
-    if (bgTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">桌遊類別：</span><div class="flex flex-wrap gap-1">${bgTags.map(t=>`<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-    if (cardTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">牌卡類別：</span><div class="flex flex-wrap gap-1">${cardTags.map(t=>`<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-    if (bookTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">圖書類別：</span><div class="flex flex-wrap gap-1">${bookTags.map(t=>`<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-    if (switchTags.length) detailHtml += `<div><span class="text-slate-400 font-bold block mb-1">Switch 類別：</span><div class="flex flex-wrap gap-1">${switchTags.map(t=>`<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">${t}</span>`).join('')}</div></div>`;
-    if (game.notes) detailHtml += `<div class="pt-2 border-t border-slate-200"><span class="text-slate-400 font-bold block mb-1">備註 / 說明：</span><div class="text-slate-600 break-all">${formatNotesWithLinks(game.notes)}</div></div>`;
-
-    document.getElementById('modalDetailContent').innerHTML = detailHtml;
-    document.getElementById('mapModal').classList.remove('hidden');
-const modal = document.getElementById('mapModal');
-    modal.classList.remove('hidden');
-
-    // 每次打開視窗時，強制將內部滾動條歸零回到最上方
-    const scrollContainer = modal.querySelector('.custom-scrollbar');
-    if (scrollContainer) {
-        scrollContainer.scrollTop = 0;
-    }
-}
-
-    function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
-
-    function switchToEditFromModal() {
-        if (!currentActiveItem) return;
-        const item = currentActiveItem;
-        closeMapModal();
-        openEditModal(item);
-    }
-
     function openAddModal() { 
         currentActiveItem = null;
         document.getElementById('modalTitle').textContent = '新增資料';
         document.getElementById('btnSubmit').textContent = '確認新增';
-        
-        document.getElementById('addName').value = '';
-        document.getElementById('addLoc').value = '';
-        document.getElementById('addAuthor').value = '';
-        document.getElementById('addPlayers').value = '';
-        document.getElementById('addDuration').value = '';
-        document.getElementById('addSwitchPlayers').value = '';
-        document.getElementById('addSwitchDuration').value = '';
-        document.getElementById('addBgCats').value = '';
-        document.getElementById('addCardCats').value = '';
-        document.getElementById('addBookCats').value = '';
-        document.getElementById('addSwitchCats').value = '';
-        document.getElementById('addImageUrl').value = '';
-        document.getElementById('addNotes').value = '';
-        
+        ['addName', 'addLoc', 'addAuthor', 'addPlayers', 'addDuration', 'addSwitchPlayers', 'addSwitchDuration', 'addBgCats', 'addCardCats', 'addBookCats', 'addSwitchCats', 'addImageUrl', 'addNotes'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
         renderCategoryButtons(); 
         toggleFormFields();
         document.getElementById('addModal').classList.remove('hidden'); 
@@ -982,7 +909,6 @@ const modal = document.getElementById('mapModal');
 
     function openEditModal(item) {
         currentActiveItem = item;
-
         document.getElementById('modalTitle').textContent = '編輯資料';
         document.getElementById('btnSubmit').textContent = '確認修改';
 
@@ -1054,7 +980,6 @@ const modal = document.getElementById('mapModal');
         }
     }
 
-    // 滾動事件
     window.addEventListener('scroll', () => {
         const btn = document.getElementById('backToTopBtn');
         if (window.scrollY > 300) {
@@ -1071,6 +996,6 @@ const modal = document.getElementById('mapModal');
     });
 
     loadData();
-</script>
+    </script>
 </body>
 </html>
