@@ -816,9 +816,9 @@
                 </div>
             `;
         } else {
-            // 統一處理 'rows' (圖書上下層) 與 'cabinet' (桌遊網格櫃子)，支援用 '*' 標記可亮燈格子
+            // 統一處理 'rows' (圖書) 與 'cabinet' (桌遊/Switch)，自動在每一直行之間加上垂直分隔線
             const isRowLayout = matchedConfig.layoutType === 'rows';
-            const cols = isRowLayout ? 1 : (matchedConfig.columns || 3);
+            const cols = matchedConfig.columns || (isRowLayout ? 1 : 3);
             
             const leftRaw = matchedConfig.leftText !== undefined ? matchedConfig.leftText : (isRowLayout ? '' : '其他區');
             const rightRaw = matchedConfig.rightText !== undefined ? matchedConfig.rightText : (isRowLayout ? '' : '其他區');
@@ -826,58 +826,71 @@
             const leftItems = String(leftRaw || '').split(/[,、]/).map(s => s.trim()).filter(Boolean);
             const rightItems = String(rightRaw || '').split(/[,、]/).map(s => s.trim()).filter(Boolean);
 
-            // 輔助函式：渲染側邊欄位（有 '*' 開頭則為可亮燈白底格子，否則為不亮燈灰底區塊）
-            const renderSideItem = (rawTxt) => {
-                const isInteractive = rawTxt.startsWith('*');
-                const label = isInteractive ? rawTxt.slice(1).trim() : rawTxt;
+            // 輔助函式：產生單一格子 HTML (中間格子或有 '*' 開頭的側邊格會亮燈，其餘維持灰底)
+            const renderSlotBox = (rawTxt, isCenterSlot = false) => {
+                const isInteractive = isCenterSlot || rawTxt.startsWith('*');
+                const label = (!isCenterSlot && rawTxt.startsWith('*')) ? rawTxt.slice(1).trim() : rawTxt;
 
                 if (isInteractive) {
                     const isHere = rawLoc.includes(label.toUpperCase());
-                    if (isHere) {
-                        return `<div class="py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs">${label}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span></div>`;
+                    if (isRowLayout) {
+                        if (isHere) {
+                            return `<div class="min-h-[3.8rem] py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner">${label}<span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-0.5">在這裡!</span></div>`;
+                        }
+                        return `<div class="min-h-[3.8rem] py-1 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-600 text-sm">${label}</div>`;
+                    } else {
+                        if (isHere) {
+                            return `<div class="min-h-[3.2rem] py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs">${label}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span></div>`;
+                        }
+                        return `<div class="min-h-[3.2rem] py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${label}</div>`;
                     }
-                    return `<div class="py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${label}</div>`;
                 } else {
-                    return `<div class="bg-slate-300 flex items-center justify-center text-slate-400 text-xs px-1 break-words rounded border border-slate-400/40">${label}</div>`;
+                    return `<div class="min-h-[3.2rem] bg-slate-300 flex items-center justify-center text-slate-400 text-xs px-1 break-words rounded border border-slate-400/40">${label}</div>`;
                 }
             };
 
-            const slotsHtml = matchedConfig.slots.map(slot => {
-                const isHere = rawLoc.includes(slot.toUpperCase());
-                if (isRowLayout) {
-                    if (isHere) {
-                        return `<div class="h-16 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 rounded flex flex-col items-center justify-center text-sm shadow-inner">${slot} <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded mt-0.5">在這裡!</span></div>`;
-                    }
-                    return `<div class="h-16 bg-white border-2 border-slate-300 rounded flex items-center justify-center font-bold text-slate-500">${slot}</div>`;
-                } else {
-                    if (isHere) {
-                        return `<div class="min-h-[3.2rem] py-1 bg-amber-400 text-amber-950 font-bold border-2 border-amber-600 shadow-inner flex flex-col items-center justify-center rounded text-xs">${slot}<span class="text-[9px] bg-amber-600 text-white px-1.5 rounded mt-0.5">在這裡!</span></div>`;
-                    }
-                    return `<div class="min-h-[3.2rem] py-1 bg-white text-slate-700 flex items-center justify-center rounded border-2 border-slate-300 text-sm">${slot}</div>`;
-                }
-            }).join('');
+            // 將中間的 slots 依欄位數 (cols) 分組為「一直行、一直行」，才能在每直行中間畫出垂直分隔線
+            const columnGroups = Array.from({ length: cols }, () => []);
+            matchedConfig.slots.forEach((slot, idx) => {
+                columnGroups[idx % cols].push(slot);
+            });
 
-            const totalGridCols = cols + (leftItems.length > 0 ? 1 : 0) + (rightItems.length > 0 ? 1 : 0);
+            const allColumnsHtml = [];
 
-            const leftHtml = leftItems.length > 0 ? `
-                <div class="grid gap-1 border-r-2 border-slate-400 pr-1" style="grid-template-rows: repeat(${leftItems.length}, minmax(0, 1fr));">
-                    ${leftItems.map(renderSideItem).join('')}
-                </div>` : '';
+            // 1. 左側欄位（若有）
+            if (leftItems.length > 0) {
+                allColumnsHtml.push(`
+                    <div class="grid gap-1.5 px-1.5 first:pl-0 last:pr-0" style="grid-template-rows: repeat(${leftItems.length}, minmax(0, 1fr));">
+                        ${leftItems.map(item => renderSlotBox(item, false)).join('')}
+                    </div>
+                `);
+            }
 
-            const rightHtml = rightItems.length > 0 ? `
-                <div class="grid gap-1 border-l-2 border-slate-400 pl-1" style="grid-template-rows: repeat(${rightItems.length}, minmax(0, 1fr));">
-                    ${rightItems.map(renderSideItem).join('')}
-                </div>` : '';
+            // 2. 中間各直行（A欄、B欄、C欄、D欄... 每一行各自垂直排列，行與行之間自動有分隔線）
+            columnGroups.forEach(colSlots => {
+                allColumnsHtml.push(`
+                    <div class="grid gap-1.5 px-1.5 first:pl-0 last:pr-0" style="grid-template-rows: repeat(${colSlots.length || 1}, minmax(0, 1fr));">
+                        ${colSlots.map(slot => renderSlotBox(slot, true)).join('')}
+                    </div>
+                `);
+            });
 
+            // 3. 右側欄位（若有）
+            if (rightItems.length > 0) {
+                allColumnsHtml.push(`
+                    <div class="grid gap-1.5 px-1.5 first:pl-0 last:pr-0" style="grid-template-rows: repeat(${rightItems.length}, minmax(0, 1fr));">
+                        ${rightItems.map(item => renderSlotBox(item, false)).join('')}
+                    </div>
+                `);
+            }
+
+            const totalGridCols = allColumnsHtml.length;
             const outerBg = isRowLayout ? 'bg-slate-200' : 'bg-slate-300';
 
+            // 透過 divide-x-2 divide-slate-400 在所有直行之間畫出統一的垂直分隔線
             mapContainer.innerHTML = `
-                <div class="border-4 border-slate-800 ${outerBg} p-2 rounded-xl grid gap-1 text-center font-bold" style="grid-template-columns: repeat(${totalGridCols}, minmax(0, 1fr));">
-                    ${leftHtml}
-                    <div class="grid gap-1" style="grid-column: span ${cols} / span ${cols}; grid-template-columns: repeat(${cols}, minmax(0, 1fr));">
-                        ${slotsHtml}
-                    </div>
-                    ${rightHtml}
+                <div class="border-4 border-slate-800 ${outerBg} p-2 rounded-xl grid divide-x-2 divide-slate-400 text-center font-bold" style="grid-template-columns: repeat(${totalGridCols}, minmax(0, 1fr));">
+                    ${allColumnsHtml.join('')}
                 </div>
             `;
         }
