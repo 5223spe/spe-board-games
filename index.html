@@ -143,9 +143,10 @@
     <!-- 列印專用隱藏區域 -->
     <div id="printSection" class="hidden"></div>
 
-    <!-- 1. 詳細資訊與動態櫃位示意圖 Modal -->
-    <div id="mapModal" onclick="closeMapModal()" oncontextmenu="event.preventDefault(); closeMapModal();" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden cursor-pointer">
-        <div onclick="event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden cursor-default border border-slate-100 relative">
+    <!-- 外層遮罩：只在點擊視窗外部（event.target === this）時才攔截右鍵並關閉 -->
+<div id="mapModal" onclick="closeMapModal()" oncontextmenu="if (event.target === this) { event.preventDefault(); closeMapModal(); }" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden cursor-pointer">
+    <!-- 內層白色視窗維持原樣即可，不需再加其他屬性 -->
+    <div onclick="event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden cursor-default border border-slate-100 relative">
             
             <div class="text-center border-b pb-3 pt-6 px-6 relative shrink-0">
                 <button onclick="closeMapModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold z-10">&times;</button>
@@ -182,7 +183,7 @@
     </div>
 
     <!-- 2. 新增 / 編輯 Modal -->
-    <div id="addModal" onclick="closeAddModal()" oncontextmenu="event.preventDefault(); closeAddModal();" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden cursor-pointer">
+    <div id="addModal" onclick="closeAddModal()" oncontextmenu="if (event.target === this) { event.preventDefault(); closeAddModal(); }" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden cursor-pointer">
         <div onclick="event.stopPropagation()" class="bg-white rounded-2xl shadow-xl max-w-lg w-full flex flex-col max-h-[85vh] overflow-hidden cursor-default border border-slate-100 relative">
             <div class="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0">
                 <h2 id="modalTitle" class="text-xl font-bold text-slate-800">新增資料</h2>
@@ -290,7 +291,7 @@
     </div>
 
     <!-- 3. 列印選項 Modal -->
-    <div id="printModal" onclick="closePrintModal()" oncontextmenu="event.preventDefault(); closePrintModal();" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden cursor-pointer">
+    <div id="printModal" onclick="closePrintModal()" oncontextmenu="if (event.target === this) { event.preventDefault(); closePrintModal(); }" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden cursor-pointer">
         <div onclick="event.stopPropagation()" class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 cursor-default border border-slate-100">
             <div class="flex items-center justify-between border-b pb-3 mb-4">
                 <h2 class="text-xl font-bold text-slate-800">列印清單設定</h2>
